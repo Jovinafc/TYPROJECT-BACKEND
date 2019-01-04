@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nodemon playground/testingServer.js",
     "data": "node playground/vehicle_models.js",
     "start-watch": "node server.js",
     "dev": "(start npm run start-watch && start npm run data) || (npm run start-watch & npm run data)",

@@ -10,8 +10,10 @@ module.exports = (sequelize, DataTypes) => {
       accessory_name: DataTypes.STRING,
       accessory_image: DataTypes.BLOB,
       accessory_details: DataTypes.STRING,
+      accessory_type:DataTypes.STRING,
       accessory_price: DataTypes.BIGINT,
-      accessory_use: DataTypes.STRING
+      accessory_use: DataTypes.STRING,
+      accessory_qty:DataTypes.BIGINT
   }, {});
   accessory.associate = function(models) {
   // accessory.hasMany(models.purchase,{foreignKey:'accessory_id'})

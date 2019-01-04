@@ -1,34 +1,29 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('accessories', {
-        accessory_id: {
+    return queryInterface.createTable('inventories', {
+      product_id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.BIGINT
       },
-        accessory_name: {
+      product_name: {
         type: Sequelize.STRING
       },
-        accessory_image: {
-        type: Sequelize.BLOB
-      },
-        accessory_details: {
-        type: Sequelize.STRING
-      },
-        accessory_type:{
-            type:Sequelize.STRING
+        product_type: {
+            type: Sequelize.STRING
         },
-        accessory_price: {
+        vehicle_type: {
+            type: Sequelize.STRING
+        },
+
+      Quantity: {
         type: Sequelize.BIGINT
       },
-        accessory_use: {
-        type: Sequelize.STRING
+      Price: {
+        type: Sequelize.BIGINT
       },
-        accessory_qty: {
-            type: Sequelize.BIGINT
-        },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -40,6 +35,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('accessories');
+    return queryInterface.dropTable('inventories');
   }
 };

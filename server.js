@@ -6,6 +6,8 @@ const app =express();
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
+const inventory = require('./../models').inventory;
+
 
 //----models-----
 const twoWheeler = require('./models').twoWheeler
@@ -21,7 +23,7 @@ app.use(cors());
 
 //-----Sign Up Route -------------
 app.post('/sign-up',async (req,res)=>{
-    try{    
+
     console.log(req.body.users)
         let hashedPassword='';
         var users = req.body.users;
@@ -48,18 +50,14 @@ app.post('/sign-up',async (req,res)=>{
     }).catch(e=>res.status(403).send(e))
 
     
-}
-catch(e)
-{
-    res.status(400).send(e)
-}
+
 
 
 })
 
 //---------- Sign in Route-------------
 app.post('/sign-in',async (req,res)=>{
- //   try{
+
         console.log(req.body.users);
         let fetchedEmail = req.body.users.email;
         let fetchedPassword = req.body.users.password;
@@ -89,9 +87,6 @@ app.post('/sign-in',async (req,res)=>{
     )
 
 
-
-       
-
         const data=await user.findOne({attributes:['user_id','email','password'],where:{email:fetchedEmail}}).then((User)=>{
             if(!User)
             {
@@ -120,14 +115,82 @@ app.post('/sign-in',async (req,res)=>{
 
         }).catch(e=>res.send(e))
 
-//    }
-//    catch(e)
-//    {
-//        res.status(404).send(e)
-//    }
+
+})
+//-----------------Inventory Routes--------
+//--- fetch inventory details
+app.get('/inventoryProducts',(req,res)=> {
+    let products = [];
+
+    inventory.findAll({attributes: ['id', 'name', 'Quantity', 'Price']}).then((product) => {
+        for (var i = 0; i < product.length; i++) {
+            products.push(
+                {
+                    "id": product[i].dataValues.id,
+                    "name": product[i].dataValues.name,
+                    "Quantity": product[i].dataValues.Quantity,
+                    "Price": product[i].dataValues.Price
+                })
+
+        }
+
+        res.status(200).send(products)
+    }).catch(e=>res.status(400).send(e))
 
 })
 
+//---Update the status of a product
+app.post('/updateProduct',async (req,res)=>{
+    const id = req.body.product.product_id;
+    let qty;
+    const findProduct=await inventory.findOne({attributes:['Quantity'],where:{id:id}}).then((currentQty)=> {
+    qty = currentQty.dataValues.Quantity;
+    return qty;
+}).catch(e=>res.status(404).send(e));
+
+    if(findProduct !==0)
+    {
+        if(req.body.updateType ==="add")
+        const updateProduct =await inventory.update({
+            Quantity:findProduct+1
+        },{where:{
+                id:id
+            }}).then(()=>{
+            res.send({
+                success:true,
+                Quantity:findProduct+1
+            })
+        }).catch(e=>res.status(404).send(e))
+
+        else if(req.body.updateType === 'delete')
+        {
+
+            const updateProduct =await inventory.update({
+                Quantity:findProduct-1
+            },{where:{
+                    id:id
+                }}).then(()=>{
+                res.send({
+                    success:true,
+                    Quantity:findProduct-1
+                })
+            }).catch(e=>res.status(404).send(e))
+        }
+    }
+    else
+    {
+        res.send('Product Out od Stock');
+    }
+
+
+});
+
+
+
+
+
+
+//-----------------
 
 
 
