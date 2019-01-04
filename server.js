@@ -6,19 +6,73 @@ const app =express();
 const cors = require('cors')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const inventory = require('./../models').inventory;
-
+const multer = require('multer');
+const cloudinary = require('cloudinary')
+var fs = require('fs');
 
 //----models-----
 const twoWheeler = require('./models').twoWheeler
 const fourWheeler = require('./models').fourWheeler
 const vehicle = require('./models').vehicle;
 const user = require('./models').user;
+const inventory = require('./models').inventory;
 
 
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.json());
 app.use(cors());
+
+
+
+//-----------image storing------
+
+//-----------Cloudinary
+cloudinary.config({
+    cloud_name: 'beast0013',
+    api_key: '317643389281754',
+    api_secret: '0UQHQHXe4QU_aqg6gtbOxuPUO0g'
+});
+
+
+
+//file - upload
+let filename=''
+let imageURL=''
+
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        filename=file.fieldname + '-' + Date.now()+'.jpg';
+        cb(null, filename)
+
+    }
+})
+
+var upload = multer({ storage: storage }).single('image');
+
+
+app.post('/profile', async function (req, res) {
+
+imageURL=''
+
+    upload(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading.
+        } else if (err) {
+            // An unknown error occurred when uploading.
+        }
+        cloudinary.v2.uploader.upload(`uploads/${filename}`,
+           function(error, result) {
+               imageURL=result.url
+           });
+
+    })
+
+})
+
+
 
 
 //-----Sign Up Route -------------
@@ -87,7 +141,7 @@ app.post('/sign-in',async (req,res)=>{
     )
 
 
-        const data=await user.findOne({attributes:['user_id','email','password'],where:{email:fetchedEmail}}).then((User)=>{
+        const data=await user.findOne({attributes:['user_id','first_name','last_name','email','password'],where:{email:fetchedEmail}}).then((User)=>{
             if(!User)
             {
                 res.status(403).send('User Does Not Exist')
@@ -102,10 +156,9 @@ app.post('/sign-in',async (req,res)=>{
                 {
 
 
-                    res.json({user_id:User.user_id,expiresIn:expiresIn,token:generateToken})
+                    res.json({user_id:User.user_id,name:User.first_name+' '+User.last_name,expiresIn:expiresIn,token:generateToken})
 
 
-                    res.send(generateToken)
                 }
                 else
                 {
@@ -150,7 +203,7 @@ app.post('/updateProduct',async (req,res)=>{
 
     if(findProduct !==0)
     {
-        if(req.body.updateType ==="add")
+        if(req.body.updateType ==="add"){
         const updateProduct =await inventory.update({
             Quantity:findProduct+1
         },{where:{
@@ -161,7 +214,7 @@ app.post('/updateProduct',async (req,res)=>{
                 Quantity:findProduct+1
             })
         }).catch(e=>res.status(404).send(e))
-
+}
         else if(req.body.updateType === 'delete')
         {
 
@@ -275,24 +328,43 @@ app.post('/fetch-fourWheeler-model',(req,res)=>{
 })
 
 ////--------------- Store vehicle details of sell/lend into vehicle table------------
-app.post('/store-vehicle-details',(req,res)=>{
+app.post('/store-vehicle-details', (req,res)=>{
         var vehicles = req.body.vehicles
-    vehicle.create({
-        vehicle_type:vehicles.type,
-        brand:vehicles.brand,
-        model:vehicles.model,
-        fuel_type:vehicles.fuel,
-        year:vehicles.year,
-        registration_state:vehicles.registration_state,
-        km_driven:vehicles.km_driven,
-        number_plate:vehicles.number_plate,
-        price:vehicles.price,
-        image:vehicles.image,
-        documents:vehicle.documents
-    }).then((result)=>{
-        console.log('Data Inserted')
-    }).catch(e=>console.log(e))
+    console.log(imageURL)
+    res.send('worked')
 
+   const vehicleStorage=()=> {
+       vehicle.create({
+           vehicle_type: vehicles.type,
+           brand: vehicles.brand,
+           model: vehicles.model,
+           fuel_type: vehicles.fuel,
+           year: vehicles.year,
+           registration_state: vehicles.registration_state,
+           km_driven: vehicles.km_driven,
+           number_plate: vehicles.number_plate,
+           price: vehicles.price,
+           image: imageURL,
+           documents: vehicle.documents
+       }).then((result) => {
+           console.log('Data Inserted')
+          const deleteImage=()=> {
+              fs.exists(`uploads/${filename}`, function (exists) {
+                  if (exists) {
+
+                      console.log('File exists. Deleting now ...');
+                      fs.unlink(`uploads/${filename}`);
+                  } else {
+
+                      console.log('File not found, so not deleting.');
+                  }
+              });
+          }
+            setTimeout(deleteImage,5000)
+
+       }).catch(e => console.log(e))
+   }
+   setTimeout(vehicleStorage,10000)
 
 })
 

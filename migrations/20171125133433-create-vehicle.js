@@ -37,7 +37,7 @@ module.exports = {
         type: Sequelize.BIGINT
       },
       image: {
-        type: Sequelize.BLOB
+        type: Sequelize.STRING
       },
       documents: {
         type: Sequelize.BLOB
