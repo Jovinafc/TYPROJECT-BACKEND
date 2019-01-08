@@ -38,6 +38,7 @@ cloudinary.config({
 //file - upload
 let filename=''
 let imageURL=''
+let profileImage=''
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -51,12 +52,12 @@ var storage = multer.diskStorage({
 })
 
 var upload = multer({ storage: storage }).single('image');
-
+var uploadProfileImage = multer({ storage: storage }).single('profileImage');
 
 app.post('/profile', async function (req, res) {
 
 imageURL=''
-
+profileImage=''
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading.
@@ -69,6 +70,19 @@ imageURL=''
            });
 
     })
+    uploadProfileImage(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading.
+        } else if (err) {
+            // An unknown error occurred when uploading.
+        }
+        cloudinary.v2.uploader.upload(`uploads/${filename}`,
+            function(error, result) {
+                profileImage=result.url
+            });
+
+    })
+
 
 })
 
@@ -78,7 +92,6 @@ imageURL=''
 //-----Sign Up Route -------------
 app.post('/sign-up',async (req,res)=>{
 
-    console.log(req.body.users)
         let hashedPassword='';
         var users = req.body.users;
 
@@ -101,7 +114,11 @@ app.post('/sign-up',async (req,res)=>{
 
     }).then(result=>{
         res.send('Data Saved in User Table')
-    }).catch(e=>res.status(403).send(e))
+    }).catch(e=>
+    {
+        res.status(403).send(e)
+    console.log(e)
+    })
 
     
 
@@ -411,6 +428,237 @@ app.get('/fetch-allVehicles-details',(req,res)=>{
     })
 })
 
+
+
+//------------- update profile image------
+app.post('/update-profile-image',(req,res)=>{
+    user.update({image:profileImage},{where:{user_id:req.body.user_id}}).then((result)=>{
+        res.send('Profile Image Updated')
+    })
+})
+// ----- Fetch Spefic Vehicle Details ----
+
+app.post('/fetch-specific-vehicle/:id',(req,res)=>{
+    let vehicle_id= req.params.id;
+    vehicle.findOne({where:{vehicle_id:vehicle_id}}).then((result)=>{
+        res.send(result.dataValues)
+    }).catch(error=>res.status(400).send(error))
+
+})
+
+
+//------ Fetch Spefic User Details ---
+app.post('/fetch-user',(req,res)=>{
+    let user_id = req.body.user_id;
+    user.findOne({where:{user_id:user_id}}).then((result)=>{
+        res.send(result.dataValues)
+    }).catch(error=>res.status(400).send(error))
+})
+
+// ------------- change user password
+app.post('/update-password',async (req,res)=> {
+    //check password
+    let fetchedEmail = req.body.email;
+    let fetchedPassword = req.body.old_password;
+    let storedPassword = '';
+    const data = await user.findOne({
+        attributes: ['email', 'password'],
+        where: {email: fetchedEmail}
+    }).then((User) => {
+        if (!User) {
+            res.status(403).send('User Does Not Exist')
+
+        }
+        else {
+
+            storedPassword = User.password;
+            const match = bcrypt.compareSync(fetchedPassword, storedPassword)
+            if (match) {
+
+                let hashedPassword = '';
+                var users = req.body;
+
+                const saltRounds = 10;
+
+                //------------------------ hashing password ---------------
+                const passwordCreation = bcrypt.hash(users.password, saltRounds).then((result) => {
+                    hashedPassword = result;
+                    user.update({password:hashedPassword},{where:{email:fetchedEmail}}).then(result=>{
+                        res.send('Password Updated')
+                    })
+
+                })
+
+            }
+            else {
+                res.status(403).send('Invalid Password')
+            }
+        }
+
+
+    })
+})
+
+//-------- Delete User Account
+app.post('/delete-account',async (req,res)=>{
+    let fetchedEmail = req.body.email;
+    let fetchedPassword = req.body.password;
+    let storedPassword = '';
+    const data = await user.findOne({
+        attributes: ['email', 'password'],
+        where: {email: fetchedEmail}
+    }).then((User) => {
+        if (!User) {
+            res.status(403).send('User Does Not Exist')
+
+        }
+        else {
+
+            storedPassword = User.password;
+            const match = bcrypt.compareSync(fetchedPassword, storedPassword)
+            if (match) {
+
+                user.update({email:'',password:''},{where:{user_id:req.body.user_id}}).then(result=>{
+                    res.send('Account deleted')
+                }).catch(error=>res.status(440).send(error))
+
+
+            }
+            else {
+                res.status(403).send('Invalid Password')
+            }
+        }
+
+    })
+
+
+})
+
+
+//-------- filtering data based on checkbox ---------
+app.post('/filtered-vehicle-results',async (req,res)=>{
+
+    let filteredResult =[]
+    let condition = req.body
+
+
+    for (let filterType in condition) {
+        let filter = req.body[filterType].filterOption
+        let value = req.body[filterType].filterValue
+
+        console.log(filter + ' ' + value)
+
+
+
+        if (filter === 'vehicle_type') {
+            const filteringResults = await vehicle.findAll({where: {vehicle_type: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+
+
+        }
+
+        else if (filter === 'brand') {
+            const filteringResults = await vehicle.findAll({where: {brand: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+        }
+
+        else if (filter === 'model') {
+            const filteringResults = await vehicle.findAll({where: {model: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+        }
+        else if (filter === 'fuel_type') {
+            const filteringResults = await vehicle.findAll({where: {fuel_type: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+        }
+        else if (filter === 'year') {
+            const filteringResults = await vehicle.findAll({where: {year: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+        }
+        else if (filter === 'registration_state') {
+            const filteringResults = await vehicle.findAll({where: {registration_state: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+        }
+        else if (filter === 'km_driven') {
+            const filteringResults = await vehicle.findAll({where: {km_driven: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+        }
+        else if (filter === 'price_per_day') {
+            const filteringResults = await vehicle.findAll({where: {price_per_day: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+
+        }
+
+
+        else if (filter === 'price') {
+            const filteringResults = await vehicle.findAll({where: {price: value}}).then((result) => {
+                for (let vehicle in result) {
+                    filteredResult.push(result[vehicle].dataValues)
+
+                }
+
+
+            }).catch(e => res.send(e))
+        }
+
+
+    }
+
+    res.send(filteredResult)
+    console.log(filteredResult)
+
+})
+
+
+
+//--------
 
 app.listen(3001,()=>{
     console.log('Listening on port 3001')
