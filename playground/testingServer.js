@@ -31,6 +31,22 @@ cloudinary.config({
     api_secret: '0UQHQHXe4QU_aqg6gtbOxuPUO0g'
 });
 
+//----- testing logic
+app.post('/test-chaining',(req,res)=>{
+    let user_id= req.body.user_id
+    const vehicle1= vehicle.create({
+        vehicle_type:req.body.type,
+        price:req.body.price
+    }).then(result=>{
+        let test=result.dataValues.vehicle_id;
+        console.log(result.dataValues.vehicle_id)
+        res.send('Worked'+test)
+        console.log('User_id'+user_id)
+    }).catch(e=>res.send(e))
+})
+
+
+
 
 //file - upload
 let filename=''

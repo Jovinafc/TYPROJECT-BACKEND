@@ -29,6 +29,9 @@ module.exports = {
         image:{
           type:Sequelize.STRING
         },
+        address:{
+          type:Sequelize.STRING
+        },
     
 
       createdAt: {

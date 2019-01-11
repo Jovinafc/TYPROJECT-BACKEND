@@ -11,7 +11,9 @@ module.exports = (sequelize, DataTypes) => {
     DOB: DataTypes.DATE,
     email: DataTypes.STRING,
     password: DataTypes.STRING,
-    image:DataTypes.STRING
+    image:DataTypes.STRING,
+      address:DataTypes.STRING
+
   }, {underscore:true});
   user.associate = function(models) {
     user.hasOne(models.feedback,{foreignKey:"user_id"})

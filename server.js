@@ -19,6 +19,9 @@ const inventory = require('./models').inventory;
 
 
 //------ For parsing json data and allowing cross-communication between react and node
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -36,53 +39,85 @@ cloudinary.config({
 
 
 //file - upload
-let filename=''
+let imagefilename=''
+let profileimagename=''
 let imageURL=''
 let profileImage=''
 
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/')
-    },
-    filename: function (req, file, cb) {
-        filename=file.fieldname + '-' + Date.now()+'.jpg';
-        cb(null, filename)
 
-    }
+
+
+
+
+app.post('/image', async function (req, res) {
+    filename=''
+    var storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/')
+        },
+        filename: function (req, file, cb) {
+            imagefilename=file.fieldname + '-' + Date.now()+'.jpg';
+            cb(null, imagefilename)
+
+        }
+    })
+
+    var upload = multer({ storage: storage }).single('image');
+    imageURL=''
+
+        upload(req, res, function (err) {
+            if (err instanceof multer.MulterError) {
+                // A Multer error occurred when uploading.
+            } else if (err) {
+                // An unknown error occurred when uploading.
+            }
+            cloudinary.v2.uploader.upload(`uploads/${imagefilename}`,
+                function(error, result) {
+                console.log(imagefilename)
+                    imageURL=result.url
+
+                    res.send('Image Stored')
+                    console.log('Image Stored',imageURL)
+                });
+
+
+        })
+
+
+
 })
 
-var upload = multer({ storage: storage }).single('image');
-var uploadProfileImage = multer({ storage: storage }).single('profileImage');
+app.post('/profileImage',(req,res)=>{
 
-app.post('/profile', async function (req, res) {
 
-imageURL=''
-profileImage=''
-    upload(req, res, function (err) {
-        if (err instanceof multer.MulterError) {
-            // A Multer error occurred when uploading.
-        } else if (err) {
-            // An unknown error occurred when uploading.
+    var storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/')
+        },
+        filename: function (req, file, cb) {
+            profileimagename=file.fieldname + '-' + Date.now()+'.jpg';
+            cb(null, profileimagename)
+
         }
-        cloudinary.v2.uploader.upload(`uploads/${filename}`,
-           function(error, result) {
-               imageURL=result.url
-           });
-
     })
+
+    profileImage=''
+    var uploadProfileImage = multer({ storage: storage }).single('profileImage');
     uploadProfileImage(req, res, function (err) {
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading.
         } else if (err) {
             // An unknown error occurred when uploading.
         }
-        cloudinary.v2.uploader.upload(`uploads/${filename}`,
-            function(error, result) {
-                profileImage=result.url
+        cloudinary.v2.uploader.upload(`uploads/${profileimagename}`,
+            function (error, result) {
+                console.log(profileimagename)
+                profileImage = result.url
+                res.send('Profile Image Stored')
+                console.log('profile Image Stored',profileImage)
             });
 
     })
-
 
 })
 
@@ -366,11 +401,11 @@ app.post('/store-vehicle-details', (req,res)=>{
        }).then((result) => {
            console.log('Data Inserted')
           const deleteImage=()=> {
-              fs.exists(`uploads/${filename}`, function (exists) {
+              fs.exists(`uploads/${imagefilename}`, function (exists) {
                   if (exists) {
 
                       console.log('File exists. Deleting now ...');
-                      fs.unlink(`uploads/${filename}`);
+                      fs.unlink(`uploads/${imagefilename}`);
                   } else {
 
                       console.log('File not found, so not deleting.');
@@ -431,10 +466,30 @@ app.get('/fetch-allVehicles-details',(req,res)=>{
 
 
 //------------- update profile image------
-app.post('/update-profile-image',(req,res)=>{
-    user.update({image:profileImage},{where:{user_id:req.body.user_id}}).then((result)=>{
+app.post('/update-profile-image',async (req,res)=>{
+ const profileImage= await user.update({image:profileImage},{where:{user_id:req.body.user_id}}).then((result)=>{
         res.send('Profile Image Updated')
-    })
+
+     const deleteImage=()=> {
+         fs.exists(`uploads/${profileimagename}`, function (exists) {
+             if (exists) {
+
+                 console.log('File exists. Deleting now ...');
+                 fs.unlink(`uploads/${profileimagename}`);
+             } else {
+
+                 console.log('File not found, so not deleting.');
+             }
+         });
+     }
+     setTimeout(deleteImage,5000)
+
+    }).catch(e=>res.send(e))
+
+setTimeout(profileImage,10000)
+
+
+
 })
 // ----- Fetch Spefic Vehicle Details ----
 
@@ -447,7 +502,7 @@ app.post('/fetch-specific-vehicle/:id',(req,res)=>{
 })
 
 
-//------ Fetch Spefic User Details ---
+//------ Fetch Specific User Details ---
 app.post('/fetch-user',(req,res)=>{
     let user_id = req.body.user_id;
     user.findOne({where:{user_id:user_id}}).then((result)=>{
@@ -659,7 +714,18 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
 
 
 //--------
+//------ Update User Profile
+app.post('/update-user-profile',(req,res)=>{
+let users = req.body.users;
+user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB},{where:
+        {user_id:users.user_id}})
 
+})
+
+
+
+
+//--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')
 })
