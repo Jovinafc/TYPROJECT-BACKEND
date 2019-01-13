@@ -88,7 +88,7 @@ app.post('/image', async function (req, res) {
 })
 
 app.post('/profileImage',(req,res)=>{
-
+    profileImage=''
 
     var storage = multer.diskStorage({
         destination: function (req, file, cb) {
@@ -101,7 +101,7 @@ app.post('/profileImage',(req,res)=>{
         }
     })
 
-    profileImage=''
+
     var uploadProfileImage = multer({ storage: storage }).single('profileImage');
     uploadProfileImage(req, res, function (err) {
         if (err instanceof multer.MulterError) {
@@ -388,6 +388,7 @@ app.post('/store-vehicle-details', (req,res)=>{
    const vehicleStorage=()=> {
        vehicle.create({
            vehicle_type: vehicles.type,
+           user_id:vehicles.user_id,
            brand: vehicles.brand,
            model: vehicles.model,
            fuel_type: vehicles.fuel,
@@ -467,8 +468,9 @@ app.get('/fetch-allVehicles-details',(req,res)=>{
 
 //------------- update profile image------
 app.post('/update-profile-image',async (req,res)=>{
- const profileImage= await user.update({image:profileImage},{where:{user_id:req.body.user_id}}).then((result)=>{
-        res.send('Profile Image Updated')
+    console.log(profileImage)
+ const profileImage1= await user.update({image:profileImage},{where:{user_id:req.body.user_id}}).then((result)=>{
+
 
      const deleteImage=()=> {
          fs.exists(`uploads/${profileimagename}`, function (exists) {
@@ -482,16 +484,16 @@ app.post('/update-profile-image',async (req,res)=>{
              }
          });
      }
-     setTimeout(deleteImage,5000)
-
+        deleteImage();
+     res.send('Profile Image Updated')
     }).catch(e=>res.send(e))
 
-setTimeout(profileImage,10000)
+
 
 
 
 })
-// ----- Fetch Spefic Vehicle Details ----
+// ----- Fetch Specific Vehicle Details ----
 
 app.post('/fetch-specific-vehicle/:id',(req,res)=>{
     let vehicle_id= req.params.id;
@@ -717,11 +719,26 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
 //------ Update User Profile
 app.post('/update-user-profile',(req,res)=>{
 let users = req.body.users;
-user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB},{where:
-        {user_id:users.user_id}})
+user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address},{where:
+        {user_id:users.user_id}}).then((result)=>{
+            res.send('User profile Updated')
+}).catch(e=>res.send(e))
 
 })
 
+//--- fetch vehicle of specific users ---
+app.post('/fetch-specific-user-vehicles',(req,res)=>{
+    let users = req.body;
+    let vehicle_details=[];
+    vehicle.findAll({where:{user_id:users.user_id}}).then((result)=>{
+        for(let vehicle in result)
+        {
+            vehicle_details.push(result[vehicle].dataValues)
+        }
+        res.send(vehicle_details)
+        }
+    )
+})
 
 
 

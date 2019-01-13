@@ -23,7 +23,9 @@ const twoWheeler = require('./../models').twoWheeler
 const fourWheeler = require('./../models').fourWheeler
 const vehicle = require('./../models').vehicle;
 const user = require('./../models').user;
-
+const rent = require('./../models').rent
+const owner = require('./../models').owner
+const client = require('./../models').client
 //-----------Cloudinary
 cloudinary.config({
     cloud_name: 'beast0013',
@@ -797,7 +799,60 @@ app.post('/delete-account',async (req,res)=>{
 
 })
 
+//-------- renting logic -------
+app.post('/rent',async (req,res)=>{
+    let vehicle_id= req.body.vehicle_id;
+    let start = req.body.start_date
+    let end= req.body.end_date
+    let user_details=[]
+    let owner_details=[];
+    let client_details=[];
+    let user_id=null;
+    let user_client_id = req.body.user_client_id;
 
+   const vehicle1=await vehicle.findOne({where: {vehicle_id: vehicle_id}}).then((result) => {
+           user_id = result.dataValues.user_id;
+           console.log(user_id)
+       });
+       const vehicle2=  await  owner.findOne({where: {user_id: user_id}}).then((result1) => {
+               owner_details.push(result1.dataValues)
+
+           });
+         const vehicle3=await  user.findOne({where: {user_id: user_client_id}}).then((result2) => {
+               user_details.push(result2.dataValues)
+               let test = [];
+               test.push(owner_details)
+               test.push(user_details)
+              // res.send(test)
+
+           })
+
+           const vehicle4= await client.create({
+               vehicle_id:owner_details[0].vehicle_id,
+               user_id:user_client_id,
+               name:user_details[0].first_name,
+
+
+           }).then((result3)=>{
+               client_details.push(result3.dataValues)
+           })
+        const vehicle5 = await rent.create({
+            vehicle_id:owner_details[0].vehicle_id,
+            client_id:client_details[0].client_id,
+            owner_id:owner_details[0].owner_id
+        }).then((result4)=>{
+            vehicle.update({status:'rented'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
+                res.send('All Worked')
+            })
+        })
+
+
+
+
+
+})
+
+//
 
 app.listen(3001,()=>{
     console.log('Listening on port 3001')

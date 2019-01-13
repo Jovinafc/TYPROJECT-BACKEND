@@ -9,6 +9,9 @@ module.exports = {
         type: Sequelize.BIGINT,
 
       },
+        user_id:{
+          type:Sequelize.BIGINT
+        },
       vehicle_type: {
         type: Sequelize.STRING
       },
