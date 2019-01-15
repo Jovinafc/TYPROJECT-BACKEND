@@ -47,7 +47,8 @@ let imageURL='';
 let profileImage='';
 let documentURL='';
 let clientURL='';
-
+let ownerdocumentname='';
+let ownerURL=''
 
 
 
@@ -153,8 +154,59 @@ app.post('/profileImage',(req,res)=>{
 })
 
 
+//---- Owner Document---
+app.post('/OwnerImage',(req,res)=>{
+    ownerURL=''
 
-// ---- Insert Owner document----
+    var storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/')
+        },
+        filename: function (req, file, cb) {
+            ownerdocumentname=file.fieldname + '-' + Date.now()+'.jpg';
+            cb(null, ownerdocumentname)
+
+        }
+    })
+
+
+    var uploadDocumentImage = multer({ storage: storage }).single('ownerImage');
+    uploadDocumentImage(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading.
+        } else if (err) {
+            // An unknown error occurred when uploading.
+        }
+        cloudinary.v2.uploader.upload(`uploads/${ownerdocumentname}`,
+            function (error, result) {
+
+                documentURL = result.url
+
+                console.log('Document Image Stored',documentURL)
+
+                const deleteImage=
+                    fs.exists(`uploads/${ownerdocumentname}`, function (exists) {
+                        if (exists) {
+
+                            console.log('File exists. Deleting now ...');
+                            fs.unlink(`uploads/${ownerdocumentname}`);
+                        } else {
+
+                            console.log('File not found, so not deleting.');
+                        }
+                    });
+                res.send('Document Image Stored')
+
+            });
+
+
+
+    })
+
+})
+
+
+// ---- Insert vehicle document----
 app.post('/documentImage',(req,res)=>{
     documentURL=''
 
@@ -517,7 +569,6 @@ app.post('/fetch-fourWheeler-model',(req,res)=>{
 app.post('/store-vehicle-details', (req,res)=>{
         var vehicles = req.body.vehicles
     console.log(imageURL)
-    res.send('worked')
 
    const vehicleStorage=()=> {
        vehicle.create({
@@ -540,6 +591,7 @@ app.post('/store-vehicle-details', (req,res)=>{
 
        }).catch(e => console.log(e))
    }
+   setTimeout(vehicleStorage,5000)
 
 })
 

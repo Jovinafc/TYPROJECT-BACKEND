@@ -845,7 +845,9 @@ app.post('/rent',async (req,res)=>{
         const vehicle5 = await rent.create({
             vehicle_id:owner_details[0].vehicle_id,
             client_id:client_details[0].client_id,
-            owner_id:owner_details[0].owner_id
+            owner_id:owner_details[0].owner_id,
+            start_date:start,
+            end_date:end
         }).then((result4)=>{
             vehicle.update({status:'Rented'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
                 res.send('All Worked')
