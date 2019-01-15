@@ -42,10 +42,11 @@ cloudinary.config({
 let imagefilename='';
 let profileimagename='';
 let documentimagename='';
+let clientimagename='';
 let imageURL='';
 let profileImage='';
 let documentURL='';
-
+let clientURL='';
 
 
 
@@ -77,6 +78,17 @@ app.post('/image', async function (req, res) {
                 function(error, result) {
                 console.log(imagefilename)
                     imageURL=result.url
+
+                    fs.exists(`uploads/${imagefilename}`, function (exists) {
+                        if (exists) {
+
+                            console.log('File exists. Deleting now ...');
+                            fs.unlink(`uploads/${imagefilename}`);
+                        } else {
+
+                            console.log('File not found, so not deleting.');
+                        }
+                    });
 
                     res.send('Image Stored')
                     console.log('Image Stored',imageURL)
@@ -193,6 +205,56 @@ app.post('/documentImage',(req,res)=>{
 
 })
 
+//----- client document
+app.post('/clientImage',(req,res)=>{
+    clientURL=''
+
+    var storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/')
+        },
+        filename: function (req, file, cb) {
+            clientimagename=file.fieldname + '-' + Date.now()+'.jpg';
+            cb(null, clientimagename)
+
+        }
+    })
+
+
+    var uploadDocumentImage = multer({ storage: storage }).single('clientImage');
+    uploadDocumentImage(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading.
+        } else if (err) {
+            // An unknown error occurred when uploading.
+        }
+        cloudinary.v2.uploader.upload(`uploads/${documentimagename}`,
+            function (error, result) {
+
+                clientURL = result.url
+
+                console.log('Document Image Stored',clientURL)
+
+                const deleteImage=
+                    fs.exists(`uploads/${clientimagename}`, function (exists) {
+                        if (exists) {
+
+                            console.log('File exists. Deleting now ...');
+                            fs.unlink(`uploads/${clientimagename}`);
+                        } else {
+
+                            console.log('File not found, so not deleting.');
+                        }
+                    });
+                res.send('Document Image Stored')
+
+            });
+
+
+
+    })
+
+})
 
 
 
@@ -474,24 +536,10 @@ app.post('/store-vehicle-details', (req,res)=>{
            status:'Available'
        }).then((result) => {
            console.log('Data Inserted')
-
-          const deleteImage=()=> {
-              fs.exists(`uploads/${imagefilename}`, function (exists) {
-                  if (exists) {
-
-                      console.log('File exists. Deleting now ...');
-                      fs.unlink(`uploads/${imagefilename}`);
-                  } else {
-
-                      console.log('File not found, so not deleting.');
-                  }
-              });
-          }
-            setTimeout(deleteImage,5000)
+           res.send('Data Inserted')
 
        }).catch(e => console.log(e))
    }
-   setTimeout(vehicleStorage,10000)
 
 })
 

@@ -836,7 +836,8 @@ app.post('/rent',async (req,res)=>{
                pincode:req.body.details.pincode,
                mobile_no:user_details[0].phone_number,
                email:user_details[0].email,
-               DOB:user_details[0].DOB
+               DOB:user_details[0].DOB,
+               documents:clientURL
 
            }).then((result3)=>{
                client_details.push(result3.dataValues)
