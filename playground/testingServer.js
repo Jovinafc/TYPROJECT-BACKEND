@@ -831,7 +831,12 @@ app.post('/rent',async (req,res)=>{
                vehicle_id:owner_details[0].vehicle_id,
                user_id:user_client_id,
                name:user_details[0].first_name,
-
+               address:user_details[0].address,
+               city:req.body.details.city,
+               pincode:req.body.details.pincode,
+               mobile_no:user_details[0].phone_number,
+               email:user_details[0].email,
+               DOB:user_details[0].DOB
 
            }).then((result3)=>{
                client_details.push(result3.dataValues)
@@ -841,7 +846,7 @@ app.post('/rent',async (req,res)=>{
             client_id:client_details[0].client_id,
             owner_id:owner_details[0].owner_id
         }).then((result4)=>{
-            vehicle.update({status:'rented'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
+            vehicle.update({status:'Rented'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
                 res.send('All Worked')
             })
         })

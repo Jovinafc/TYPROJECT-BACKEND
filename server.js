@@ -39,10 +39,12 @@ cloudinary.config({
 
 
 //file - upload
-let imagefilename=''
-let profileimagename=''
-let imageURL=''
-let profileImage=''
+let imagefilename='';
+let profileimagename='';
+let documentimagename='';
+let imageURL='';
+let profileImage='';
+let documentURL='';
 
 
 
@@ -113,9 +115,79 @@ app.post('/profileImage',(req,res)=>{
             function (error, result) {
                 console.log(profileimagename)
                 profileImage = result.url
+
+
+                const deleteImage= fs.exists(`uploads/${profileimagename}`, function (exists) {
+                    if (exists) {
+
+                        console.log('File exists. Deleting now ...');
+                        fs.unlink(`uploads/${profileimagename}`);
+                    } else {
+
+                        console.log('File not found, so not deleting.');
+                    }
+                });
                 res.send('Profile Image Stored')
                 console.log('profile Image Stored',profileImage)
+
+
+
+
+});
+
+
+    })
+
+})
+
+
+
+// ---- Insert Owner document----
+app.post('/documentImage',(req,res)=>{
+    documentURL=''
+
+    var storage = multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, 'uploads/')
+        },
+        filename: function (req, file, cb) {
+            documentimagename=file.fieldname + '-' + Date.now()+'.jpg';
+            cb(null, documentimagename)
+
+        }
+    })
+
+
+    var uploadDocumentImage = multer({ storage: storage }).single('documentImage');
+    uploadDocumentImage(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading.
+        } else if (err) {
+            // An unknown error occurred when uploading.
+        }
+        cloudinary.v2.uploader.upload(`uploads/${documentimagename}`,
+            function (error, result) {
+
+                documentURL = result.url
+
+                console.log('Document Image Stored',documentURL)
+
+                const deleteImage=
+                    fs.exists(`uploads/${documentimagename}`, function (exists) {
+                        if (exists) {
+
+                            console.log('File exists. Deleting now ...');
+                            fs.unlink(`uploads/${documentimagename}`);
+                        } else {
+
+                            console.log('File not found, so not deleting.');
+                        }
+                    });
+                res.send('Document Image Stored')
+
             });
+
+
 
     })
 
@@ -398,9 +470,11 @@ app.post('/store-vehicle-details', (req,res)=>{
            number_plate: vehicles.number_plate,
            price: vehicles.price,
            image: imageURL,
-           documents: vehicle.documents
+           documents: vehicle.documents,
+           status:'Available'
        }).then((result) => {
            console.log('Data Inserted')
+
           const deleteImage=()=> {
               fs.exists(`uploads/${imagefilename}`, function (exists) {
                   if (exists) {
@@ -422,7 +496,22 @@ app.post('/store-vehicle-details', (req,res)=>{
 })
 
 
+//------ Add Owner's Info To Database ----
+app.post('/store-owners-details',(req,res)=>{
+   let vehicles = req.body.vehicles;
+    owner.create({
+        vehicle_id: vehicles.vehicle_id,
+        user_id: vehicles.user_id,
+        name: vehicles.name,
+        address: vehicles.address,
+        pincode:vehicles.pincode,
+        mobile_no:vehicles.mobile_no,
+        email:vehicles.email,
+        DOB:vehicles.DOB,
+        documents:documentURL
 
+    })
+})
 
 //----------Fetch twoWheeler details stored in database for displaying--------
 app.get('/fetch-twoWheeler-details',(req,res)=>{
@@ -473,16 +562,7 @@ app.post('/update-profile-image',async (req,res)=>{
 
 
      const deleteImage=()=> {
-         fs.exists(`uploads/${profileimagename}`, function (exists) {
-             if (exists) {
 
-                 console.log('File exists. Deleting now ...');
-                 fs.unlink(`uploads/${profileimagename}`);
-             } else {
-
-                 console.log('File not found, so not deleting.');
-             }
-         });
      }
         deleteImage();
      res.send('Profile Image Updated')
