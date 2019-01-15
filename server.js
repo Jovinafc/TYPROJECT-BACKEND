@@ -180,9 +180,9 @@ app.post('/OwnerImage',(req,res)=>{
         cloudinary.v2.uploader.upload(`uploads/${ownerdocumentname}`,
             function (error, result) {
 
-                documentURL = result.url
+                ownerURL = result.url
 
-                console.log('Document Image Stored',documentURL)
+                console.log('Document Image Stored',ownerURL)
 
                 const deleteImage=
                     fs.exists(`uploads/${ownerdocumentname}`, function (exists) {
