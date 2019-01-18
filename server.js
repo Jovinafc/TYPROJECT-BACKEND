@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt')
 const multer = require('multer');
 const cloudinary = require('cloudinary')
 var fs = require('fs');
+const Sequelize = require('sequelize');
 
 //----models-----
 const twoWheeler = require('./models').twoWheeler
@@ -16,7 +17,8 @@ const fourWheeler = require('./models').fourWheeler
 const vehicle = require('./models').vehicle;
 const user = require('./models').user;
 const inventory = require('./models').inventory;
-
+const transaction =require('./models').transaction;
+const rent = require('./models').rent;
 
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({
@@ -586,7 +588,26 @@ app.post('/store-vehicle-details', (req,res)=>{
            documents: vehicle.documents,
            status:'Available'
        }).then((result) => {
-           console.log('Data Inserted')
+           console.log('Data Inserted');
+          user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
+              owner.create({
+                    vehicle_id:result.dataValues.vehicle_id,
+                    user_id:vehicles_user_id,
+                    name: result1.dataValues.first_name+' '+result1.dataValues.last_name,
+                    address:result1.dataValues.address,
+                    pincode:vehicles.pincode,
+                  mobile_no:result1.dataValues.phone_number,
+                  email:result1.dataValues.email,
+                  DOB:result1.dataValues.DOB,
+                  documents:ownerURL
+
+              })
+          })
+
+
+
+
+
            res.send('Data Inserted')
 
        }).catch(e => console.log(e))
@@ -596,22 +617,99 @@ app.post('/store-vehicle-details', (req,res)=>{
 })
 
 
-//------ Add Owner's Info To Database ----
-app.post('/store-owners-details',(req,res)=>{
-   let vehicles = req.body.vehicles;
-    owner.create({
-        vehicle_id: vehicles.vehicle_id,
-        user_id: vehicles.user_id,
-        name: vehicles.name,
-        address: vehicles.address,
-        pincode:vehicles.pincode,
-        mobile_no:vehicles.mobile_no,
-        email:vehicles.email,
-        DOB:vehicles.DOB,
-        documents:documentURL
+//------ Buying Logic ----
+app.post('/buy-now',(req,res)=> {
+    let vehicles = req.body.vehicles
+    user.findOne({where:{user_id:vehicles.client_id}}).then((result)=>{
+        client.create({
+            vehicle_id:vehicles.vehicle_id,
+            user_id:vehicles.client_id,
+            name: result.dataValues.first_name+' '+result.dataValues.last_name,
+            address:result.dataValues.address,
+            city:vehicles.city,
+            pincode:vehicles.pincode,
+            mobile_no: result.dataValues.phone_number,
+            email:result.dataValues.email,
+            DOB:result.dataValues.DOB,
+            documents:clientURL
+        }).then((clientResult)=>{
+            transaction.create({
+                client_id:clientResult.dataValues.client_id,
+                vehicle_id:vehicles.vehicle_id,
+                date:vehicles.date,
+                type:vehicles.type
+            }).then((transactionResult)=>{
+                vehicle.update({status:'SOLD',where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
+                    res.send('Vehicle Sold')
+                })
+            })
+        })
+    })
+
+})
+//---------- Renting Logic
+pp.post('/rent-now',async (req,res)=>{
+    let vehicle_id= req.body.vehicle_id;
+    let start = req.body.start_date
+    let end= req.body.end_date
+    let user_details=[]
+    let owner_details=[];
+    let client_details=[];
+    let user_id=null;
+    let user_client_id = req.body.user_client_id;
+
+    const vehicle1=await vehicle.findOne({where: {vehicle_id: vehicle_id}}).then((result) => {
+        user_id = result.dataValues.user_id;
+        console.log(user_id)
+    });
+    const vehicle2=  await  owner.findOne({where: {user_id: user_id}}).then((result1) => {
+        owner_details.push(result1.dataValues)
+
+    });
+    const vehicle3=await  user.findOne({where: {user_id: user_client_id}}).then((result2) => {
+        user_details.push(result2.dataValues)
+        let test = [];
+        test.push(owner_details)
+        test.push(user_details)
+        // res.send(test)
 
     })
+
+    const vehicle4= await client.create({
+        vehicle_id:owner_details[0].vehicle_id,
+        user_id:user_client_id,
+        name:user_details[0].first_name,
+        address:user_details[0].address,
+        city:req.body.details.city,
+        pincode:req.body.details.pincode,
+        mobile_no:user_details[0].phone_number,
+        email:user_details[0].email,
+        DOB:user_details[0].DOB,
+        documents:clientURL
+
+    }).then((result3)=>{
+        client_details.push(result3.dataValues)
+    })
+    const vehicle5 = await rent.create({
+        vehicle_id:owner_details[0].vehicle_id,
+        client_id:client_details[0].client_id,
+        owner_id:owner_details[0].owner_id,
+        start_date:start,
+        end_date:end
+    }).then((result4)=>{
+        vehicle.update({status:'RENTED'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
+            res.send('Vehicle Rented')
+        })
+    })
+
+
+
+
+
 })
+
+
+
 
 //----------Fetch twoWheeler details stored in database for displaying--------
 app.get('/fetch-twoWheeler-details',(req,res)=>{
@@ -920,7 +1018,22 @@ app.post('/fetch-specific-user-vehicles',(req,res)=>{
     )
 })
 
+//----- fetch all users vehicle except current
+app.post('/fetch-vehicles-except-current-user',(req,res)=>{
+    const Op = Sequelize.Op
+    const user_id = req.body.user_id
+    let collection =[]
+    vehicle.findAll({where:{user_id:{[Op.ne]:user_id}}}).then((result)=>{
 
+        for (let i in result)
+        {
+            collection.push(result[i].dataValues)
+        }
+
+        res.send(collection)
+    })
+
+})
 
 //--------------
 app.listen(3001,()=>{

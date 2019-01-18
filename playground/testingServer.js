@@ -9,7 +9,7 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const inventory = require('./../models').inventory;
 const cloudinary = require('cloudinary')
-
+const Sequelize = require('sequelize');
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -47,8 +47,25 @@ app.post('/test-chaining',(req,res)=>{
     }).catch(e=>res.send(e))
 })
 
+//sending details of all users except current
+app.post('/test1',(req,res)=>{
+const Op = Sequelize.Op
+const user_id = req.body.user_id
+    let collection =[]
+    vehicle.findAll({where:{user_id:{[Op.ne]:user_id}}}).then((result)=>{
+        //console.log(result)
+        for (let i in result)
+        {
+            collection.push(result[i].dataValues)
+        }
 
+        user.findOne({where:{user_id:1}}).then((test1)=>{
+            console.log(test1.dataValues.first_name+' '+test1.dataValues.last_name)
+        })
+        res.send(collection)
+    })
 
+})
 
 //file - upload
 let filename=''
