@@ -584,9 +584,10 @@ app.post('/store-vehicle-details', (req,res)=>{
            km_driven: vehicles.km_driven,
            number_plate: vehicles.number_plate,
            price: vehicles.price,
+           price_per_day:vehicles.price_per_day,
            image: imageURL,
            documents: vehicle.documents,
-           status:'Available'
+           status:'AVAILABLEg'
        }).then((result) => {
            console.log('Data Inserted');
           user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
@@ -741,7 +742,7 @@ app.get('/fetch-fourWheeler-details',(req,res)=>{
 //----------Fetch all Vehicle details stored in database for displaying--------
 app.get('/fetch-allVehicles-details',(req,res)=>{
     var vehicle_details=[]
-    vehicle.findAll({attributes:['vehicle_id','vehicle_type','brand','model','fuel_type','year','registration_state','km_driven','number_plate','price_per_day','image','documents','price','status']}).then((result)=>{
+    vehicle.findAll({attributes:['vehicle_id','user_id','vehicle_type','brand','model','fuel_type','year','registration_state','km_driven','number_plate','price_per_day','image','documents','price','status']}).then((result)=>{
         for(var i=0;i<result.length;i++)
         {
             vehicle_details.push(result[i])
