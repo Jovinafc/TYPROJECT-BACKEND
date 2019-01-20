@@ -10,6 +10,7 @@ const multer = require('multer');
 const cloudinary = require('cloudinary')
 var fs = require('fs');
 const Sequelize = require('sequelize');
+const schedule = require('node-schedule');
 
 //----models-----
 const twoWheeler = require('./models').twoWheeler
@@ -587,7 +588,7 @@ app.post('/store-vehicle-details', (req,res)=>{
            price_per_day:vehicles.price_per_day,
            image: imageURL,
            documents: vehicle.documents,
-           status:'AVAILABLEg'
+           status:'AVAILABLE'
        }).then((result) => {
            console.log('Data Inserted');
           user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
@@ -640,7 +641,7 @@ app.post('/buy-now',(req,res)=> {
                 date:vehicles.date,
                 type:vehicles.type
             }).then((transactionResult)=>{
-                vehicle.update({status:'SOLD',where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
+                vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
                     res.send('Vehicle Sold')
                 })
             })
@@ -649,7 +650,7 @@ app.post('/buy-now',(req,res)=> {
 
 })
 //---------- Renting Logic
-pp.post('/rent-now',async (req,res)=>{
+app.post('/rent-now',async (req,res)=>{
     let vehicle_id= req.body.vehicle_id;
     let start = req.body.start_date
     let end= req.body.end_date
@@ -669,9 +670,9 @@ pp.post('/rent-now',async (req,res)=>{
     });
     const vehicle3=await  user.findOne({where: {user_id: user_client_id}}).then((result2) => {
         user_details.push(result2.dataValues)
-        let test = [];
-        test.push(owner_details)
-        test.push(user_details)
+        // let test = [];
+        // test.push(owner_details)
+        // test.push(user_details)
         // res.send(test)
 
     })
@@ -699,7 +700,22 @@ pp.post('/rent-now',async (req,res)=>{
         end_date:end
     }).then((result4)=>{
         vehicle.update({status:'RENTED'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
-            res.send('Vehicle Rented')
+            let date= new Date(end);
+            let year = date.getFullYear();
+            let month = date.getMonth();
+            let day = date.getDate();
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            var date1 = new Date(year, month, day, hours, minutes, 0);
+
+            var j = schedule.scheduleJob(date1, function(){
+                vehicle.update({status:'AVAILABLE'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
+
+                })
+            });
+            res.send('Vehicle Rented');
+
+
         })
     })
 

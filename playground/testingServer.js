@@ -10,6 +10,8 @@ const multer = require('multer');
 const inventory = require('./../models').inventory;
 const cloudinary = require('cloudinary')
 const Sequelize = require('sequelize');
+const schedule = require('node-schedule');
+const moment = require('moment')
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -46,6 +48,32 @@ app.post('/test-chaining',(req,res)=>{
         console.log('User_id'+user_id)
     }).catch(e=>res.send(e))
 })
+
+
+// testing scheduling
+app.post('/schedule-testing',(req,res)=>{
+    let date= new Date(req.body.date);
+ let test =[1,2,3];
+  //  moment(date).format()
+  //   let d = new Date(date.getFullYear(),date.getMonth(),date.getDay(),date.getHours(),date.getMinutes());
+   // console.log(d)
+    let year = date.getFullYear();
+    let month = date.getMonth();
+    let day = date.getDate();
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+
+
+        var date1 = new Date(year, month, day, hours, minutes, 0);
+
+        var j = schedule.scheduleJob(date1, function(){
+            console.log('The world is going to end today.');
+        });
+
+
+    res.send('Task Initiated '+date1);
+})
+
 
 //sending details of all users except current
 app.post('/test1',(req,res)=>{
