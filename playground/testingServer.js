@@ -12,6 +12,7 @@ const cloudinary = require('cloudinary')
 const Sequelize = require('sequelize');
 const schedule = require('node-schedule');
 const moment = require('moment')
+const {authenticate} = require('./../middleware/authenticate');
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -34,6 +35,14 @@ cloudinary.config({
     api_key: '317643389281754',
     api_secret: '0UQHQHXe4QU_aqg6gtbOxuPUO0g'
 });
+
+// middleware logic
+app.post('/test-middleware',authenticate,(req,res)=>{
+    console.log('Worked')
+    let test = req.body.users;
+    res.send('worked '+test)
+})
+
 
 //----- testing logic
 app.post('/test-chaining',(req,res)=>{

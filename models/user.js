@@ -12,7 +12,11 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     image:DataTypes.STRING,
-      address:DataTypes.STRING
+      address:DataTypes.STRING,
+    state:DataTypes.STRING,
+    city:DataTypes.STRING,
+    pincode:DataTypes.STRING,
+    documents:DataTypes.STRING
 
 
   }, {underscore:true});

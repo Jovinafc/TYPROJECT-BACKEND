@@ -24,11 +24,12 @@ module.exports = (sequelize, DataTypes) => {
     address: DataTypes.STRING,
     name: DataTypes.STRING,
     city: DataTypes.STRING,
+    state:DataTypes.STRING,
     pincode: DataTypes.DOUBLE,
     mobile_no: DataTypes.DOUBLE,
     email: DataTypes.STRING,
     DOB: DataTypes.DATE,
-    documents: DataTypes.BLOB
+    documents: DataTypes.STRING
   });
   client.associate = function(models) {
     client.hasOne(models.transaction,{foreignKey:"client_id"})

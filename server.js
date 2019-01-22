@@ -20,7 +20,8 @@ const user = require('./models').user;
 const inventory = require('./models').inventory;
 const transaction =require('./models').transaction;
 const rent = require('./models').rent;
-
+const owner = require('./models').owner;
+const client = require('./models').client;
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({
     extended: false
@@ -371,7 +372,7 @@ app.post('/sign-in',async (req,res)=>{
     },(err,token)=>{
         if(err)
         {
-            console.log(err)
+            console.log()
         }
         generateToken=token;
     });
@@ -385,7 +386,7 @@ app.post('/sign-in',async (req,res)=>{
         const data=await user.findOne({attributes:['user_id','first_name','last_name','email','password'],where:{email:fetchedEmail}}).then((User)=>{
             if(!User)
             {
-                res.status(403).send('User Does Not Exist')
+                res.status(401).send('User Does Not Exist')
 
             }
             else
@@ -403,7 +404,7 @@ app.post('/sign-in',async (req,res)=>{
                 }
                 else
                 {
-                    res.status(403).send('Invalid Password')
+                    res.status(401).send('Invalid Password')
                 }
             }
 
@@ -628,7 +629,7 @@ app.post('/buy-now',(req,res)=> {
             user_id:vehicles.client_id,
             name: result.dataValues.first_name+' '+result.dataValues.last_name,
             address:result.dataValues.address,
-            city:vehicles.city,
+           city:vehicles.city,
             pincode:vehicles.pincode,
             mobile_no: result.dataValues.phone_number,
             email:result.dataValues.email,
@@ -791,8 +792,10 @@ app.post('/update-profile-image',async (req,res)=>{
 // ----- Fetch Specific Vehicle Details ----
 
 app.post('/fetch-specific-vehicle/:id',(req,res)=>{
+    const Op = Sequelize.Op;
     let vehicle_id= req.params.id;
-    vehicle.findOne({where:{vehicle_id:vehicle_id}}).then((result)=>{
+    let user_id=req.body.user_id;
+    vehicle.findOne({where:{vehicle_id:vehicle_id,user_id:{[Op.ne]:user_id}}}).then((result)=>{
         res.send(result.dataValues)
     }).catch(error=>res.status(400).send(error))
 
@@ -1014,7 +1017,9 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
 //------ Update User Profile
 app.post('/update-user-profile',(req,res)=>{
 let users = req.body.users;
-user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address},{where:
+user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
+    state:users.state,city:users.city,pincode:users.pincode,documents:clientURL
+},{where:
         {user_id:users.user_id}}).then((result)=>{
             res.send('User profile Updated')
 }).catch(e=>res.send(e))
@@ -1034,6 +1039,16 @@ app.post('/fetch-specific-user-vehicles',(req,res)=>{
         }
     )
 })
+
+//------- fetch vehicles based on status-----
+app.post('/fetch-specific-vehicles-based-on-status',(req,res)=>{
+    let vehicle_status=req.body.status;
+    vehicle.findOne({where:{status:vehicle_status}}).then((result)=>{
+        res.send(result.dataValues)
+    }).catch((err)=>res.status(403).send(err))
+})
+
+
 
 //----- fetch all users vehicle except current
 app.post('/fetch-vehicles-except-current-user',(req,res)=>{

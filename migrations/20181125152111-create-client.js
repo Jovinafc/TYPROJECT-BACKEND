@@ -44,8 +44,11 @@ module.exports = {
       DOB: {
         type: Sequelize.DATE
       },
+      state:{
+          type:Sequelize.STRING
+      },
       documents: {
-        type: Sequelize.BLOB
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,

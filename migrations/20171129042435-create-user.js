@@ -32,7 +32,18 @@ module.exports = {
         address:{
           type:Sequelize.STRING
         },
-    
+        state:{
+          type:Sequelize.STRING
+        },
+        city:{
+            type:Sequelize.STRING
+        },
+        pincode:{
+            type:Sequelize.STRING
+        },
+        documents:{
+          type:Sequelize.STRING
+        },
 
       createdAt: {
         allowNull: false,

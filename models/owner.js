@@ -25,10 +25,13 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       address: DataTypes.STRING,
       pincode: DataTypes.DOUBLE,
+      state:DataTypes.STRING,
+      city:DataTypes.STRING,
       mobile_no: DataTypes.DOUBLE,
       email: DataTypes.STRING,
       DOB: DataTypes.DATE,
-      documents: DataTypes.BLOB
+      documents: DataTypes.STRING
+
   }, {});
   owner.associate = function(models) {
     // associations can be defined here
