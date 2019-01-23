@@ -22,6 +22,11 @@ const transaction =require('./models').transaction;
 const rent = require('./models').rent;
 const owner = require('./models').owner;
 const client = require('./models').client;
+
+//----middleware
+const {authenticate} = require('./middleware/authenticate');
+
+
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({
     extended: false
@@ -494,7 +499,7 @@ app.post('/updateProduct',async (req,res)=>{
 
 //------------------------ Main Routes   --------------------------
 //-----------Fetch vehicle type---------
-app.get('/fetch-vehicle-type',(req,res)=>{
+app.get('/fetch-vehicle-type',authenticate,(req,res)=>{
     var vehicle_type=["Two-Wheelers","Four-Wheelers"];
     res.status(200).send(vehicle_type)
 })
@@ -572,7 +577,7 @@ app.post('/fetch-fourWheeler-model',(req,res)=>{
 ////--------------- Store vehicle details of sell/lend into vehicle table------------
 app.post('/store-vehicle-details', (req,res)=>{
         var vehicles = req.body.vehicles
-    console.log(imageURL)
+    console.log(imageURL);
 
    const vehicleStorage=()=> {
        vehicle.create({
@@ -592,10 +597,11 @@ app.post('/store-vehicle-details', (req,res)=>{
            status:'AVAILABLE'
        }).then((result) => {
            console.log('Data Inserted');
+           console.log(result.dataValues)
           user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
               owner.create({
                     vehicle_id:result.dataValues.vehicle_id,
-                    user_id:vehicles_user_id,
+                    user_id:vehicles.user_id,
                     name: result1.dataValues.first_name+' '+result1.dataValues.last_name,
                     address:result1.dataValues.address,
                     pincode:vehicles.pincode,
@@ -615,7 +621,7 @@ app.post('/store-vehicle-details', (req,res)=>{
 
        }).catch(e => console.log(e))
    }
-   setTimeout(vehicleStorage,5000)
+  setTimeout(vehicleStorage,5000)
 
 })
 
@@ -683,12 +689,12 @@ app.post('/rent-now',async (req,res)=>{
         user_id:user_client_id,
         name:user_details[0].first_name,
         address:user_details[0].address,
-        city:req.body.details.city,
-        pincode:req.body.details.pincode,
+        //city:req.body.details.city,
+       // pincode:req.body.details.pincode,
         mobile_no:user_details[0].phone_number,
         email:user_details[0].email,
         DOB:user_details[0].DOB,
-        documents:clientURL
+        //documents:clientURL
 
     }).then((result3)=>{
         client_details.push(result3.dataValues)
@@ -714,7 +720,7 @@ app.post('/rent-now',async (req,res)=>{
 
                 })
             });
-            res.send('Vehicle Rented');
+          //  res.send('Vehicle Rented');
 
 
         })

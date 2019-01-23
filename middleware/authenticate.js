@@ -12,6 +12,7 @@ var token = req.header('x-auth');
            }
            else if(token)
            {
+               console.log('Authorized');
                next();
            }
         }
