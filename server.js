@@ -11,6 +11,8 @@ const cloudinary = require('cloudinary')
 var fs = require('fs');
 const Sequelize = require('sequelize');
 const schedule = require('node-schedule');
+const speakeasy = require('speakeasy');
+
 
 //----models-----
 const twoWheeler = require('./models').twoWheeler
@@ -22,10 +24,9 @@ const transaction =require('./models').transaction;
 const rent = require('./models').rent;
 const owner = require('./models').owner;
 const client = require('./models').client;
-
+const card_details = require('./models').card_details
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
-
 
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({
@@ -403,7 +404,7 @@ app.post('/sign-in',async (req,res)=>{
                 {
 
 
-                    res.json({user_id:User.user_id,name:User.first_name+' '+User.last_name,expiresIn:expiresIn,token:generateToken})
+                    res.json({user_id:User.user_id,name:User.first_name+' '+User.last_name,expiresIn:3600,token:generateToken})
 
 
                 }
@@ -417,6 +418,25 @@ app.post('/sign-in',async (req,res)=>{
 
 
 })
+//---- token creation for expiry date
+app.get('/getToken/:user_id/:email',(req,res)=>{
+    var jwtDetails={
+        user_id:req.params.user_id,
+        email:req.params.email
+    };
+    const jwtCreation= jwt.sign(jwtDetails,'secretkey',{
+        expiresIn: '1h'
+    },(err,token)=>{
+        if(err)
+        {
+            console.log()
+        }
+        res.send({token:token,expiresIn:3600})
+    });
+
+})
+
+
 //-----------------Inventory Routes--------
 //--- fetch inventory details
 app.get('/inventoryProducts',(req,res)=> {
@@ -578,51 +598,51 @@ app.post('/fetch-fourWheeler-model',(req,res)=>{
 app.post('/store-vehicle-details', (req,res)=>{
         var vehicles = req.body.vehicles
     console.log(imageURL);
+try {
+    const vehicleStorage = () => {
+        vehicle.create({
+            vehicle_type: vehicles.type,
+            user_id: vehicles.user_id,
+            brand: vehicles.brand,
+            model: vehicles.model,
+            fuel_type: vehicles.fuel,
+            year: vehicles.year,
+            registration_state: vehicles.registration_state,
+            km_driven: vehicles.km_driven,
+            number_plate: vehicles.number_plate,
+            price: vehicles.price,
+            price_per_day: vehicles.price_per_day,
+            image: imageURL,
+            documents: vehicle.documents,
+            status: 'AVAILABLE'
+        }).then((result) => {
+            console.log('Data Inserted');
+            console.log(result.dataValues)
+            user.findOne({where: {user_id: result.dataValues.user_id}}).then((result1) => {
+                owner.create({
+                    vehicle_id: result.dataValues.vehicle_id,
+                    user_id: vehicles.user_id,
+                    name: result1.dataValues.first_name + ' ' + result1.dataValues.last_name,
+                    address: result1.dataValues.address,
+                    pincode: vehicles.pincode,
+                    mobile_no: result1.dataValues.phone_number,
+                    email: result1.dataValues.email,
+                    DOB: result1.dataValues.DOB,
+                    documents: ownerURL
 
-   const vehicleStorage=()=> {
-       vehicle.create({
-           vehicle_type: vehicles.type,
-           user_id:vehicles.user_id,
-           brand: vehicles.brand,
-           model: vehicles.model,
-           fuel_type: vehicles.fuel,
-           year: vehicles.year,
-           registration_state: vehicles.registration_state,
-           km_driven: vehicles.km_driven,
-           number_plate: vehicles.number_plate,
-           price: vehicles.price,
-           price_per_day:vehicles.price_per_day,
-           image: imageURL,
-           documents: vehicle.documents,
-           status:'AVAILABLE'
-       }).then((result) => {
-           console.log('Data Inserted');
-           console.log(result.dataValues)
-          user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
-              owner.create({
-                    vehicle_id:result.dataValues.vehicle_id,
-                    user_id:vehicles.user_id,
-                    name: result1.dataValues.first_name+' '+result1.dataValues.last_name,
-                    address:result1.dataValues.address,
-                    pincode:vehicles.pincode,
-                  mobile_no:result1.dataValues.phone_number,
-                  email:result1.dataValues.email,
-                  DOB:result1.dataValues.DOB,
-                  documents:ownerURL
-
-              })
-          })
-
-
+                })
+            })
 
 
+            res.send('Data Inserted')
 
-           res.send('Data Inserted')
-
-       }).catch(e => console.log(e))
-   }
-  setTimeout(vehicleStorage,5000)
-
+        }).catch(e => console.log(e))
+    }
+    setTimeout(vehicleStorage, 5000)
+}
+catch(error){
+    res.status(403).send("Error during vehicle storage");
+}
 })
 
 
@@ -666,7 +686,10 @@ app.post('/rent-now',async (req,res)=>{
     let client_details=[];
     let user_id=null;
     let user_client_id = req.body.user_client_id;
-
+    let owner_bank_account= req.body.owner_bank_account;
+    let client_bank_account= req.body.client_bank_account
+    let amount = req.body.amount;
+    let deposit = req.body.deposit;
     const vehicle1=await vehicle.findOne({where: {vehicle_id: vehicle_id}}).then((result) => {
         user_id = result.dataValues.user_id;
         console.log(user_id)
@@ -714,13 +737,25 @@ app.post('/rent-now',async (req,res)=>{
             let hours = date.getHours();
             let minutes = date.getMinutes();
             var date1 = new Date(year, month, day, hours, minutes, 0);
-
+            res.send('Vehicle Rented');
             var j = schedule.scheduleJob(date1, function(){
+                let owner_funds=null;
+                let client_funds=null;
                 vehicle.update({status:'AVAILABLE'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
+                  card_details.findOne({where:{bank_account_no: client_bank_account}}).then((details)=>{
+                      client_funds= details.dataValues.funds;
+                  card_details.findOne({where:{bank_account_no:owner_bank_account}}).then((details1)=>{
+                      owner_funds= details.dataValues.funds;
+                  })
+                  })
 
+                   const sequelize = new Sequelize();
+                   return sequelize.transaction(function(t){
+                      return  card_details.update({})
+                    })
                 })
             });
-          //  res.send('Vehicle Rented');
+
 
 
         })
@@ -1061,7 +1096,7 @@ app.post('/fetch-vehicles-except-current-user',(req,res)=>{
     const Op = Sequelize.Op
     const user_id = req.body.user_id
     let collection =[]
-    vehicle.findAll({where:{user_id:{[Op.ne]:user_id}}}).then((result)=>{
+    vehicle.findAll({where:{user_id:{[Op.ne]:user_id},status:"AVAILABLE"}}).then((result)=>{
 
         for (let i in result)
         {
@@ -1072,6 +1107,102 @@ app.post('/fetch-vehicles-except-current-user',(req,res)=>{
     })
 
 })
+
+//------ Credit / Debit Card Routes
+app.post('/pay-now',(req,res)=>{
+    //to verify a card
+    let card_details = req.body.card_details
+    card_details.findOne({where:{card_no:card_details.card_no}}).then((result)=>{
+        if(result.dataValues.name!==card_details.name)
+        {
+            res.status(404).send("Invalid Name on Card")
+        }
+        else if(result.dataValues.cvv!==card_details.cvv)
+        {
+            res.status(404).send("Invalid CVV")
+
+        }
+        else if(result.dataValues.expiry_date!==card_details.cvv)
+        {
+            res.status(404).send("Invalid Expiry Date")
+
+        }
+        else if(result.dataValues.mobile_no!==card_details.mobile_no)
+        {
+            res.status(404).send("Not a Registered Mobile Number")
+
+        }
+        else if(result.dataValues.funds<card_details.amount)
+        {
+            res.status(404).send("Insufficient funds")
+
+        }
+        else
+        {
+            const funds= result.dataValues.funds;
+            res.send(funds)
+        }
+    })
+})
+//---- request an OTP ----
+app.post('/request-otp',(req,res)=>{
+    const email=req.body.email;
+    var secret = "IF2SKQRYHF4GOKCOGV3HCW2AMFVWCKSH"+email;
+    var token = speakeasy.totp({
+        secret: secret,
+        encoding: 'base32'
+    });
+
+    res.send(token)
+
+})
+
+
+//--------------- Confirm payment  -----
+app.post('/confirm-payment',(req,res)=>{
+    //otp verification
+    const email = req.body.email;
+    const secret = "IF2SKQRYHF4GOKCOGV3HCW2AMFVWCKSH"+email;
+    const token = req.body.token;
+    const tokenValidates = speakeasy.totp.verify({
+        secret: secret,
+        encoding: 'base32',
+        token: token,
+        window: 6
+    });
+
+    if(tokenValidates===true)
+    {
+        //deduct funds from user
+        let bank_funds=null;
+        card_details.findOne({where:{name:"Bank"}}).then((bank_details)=>{
+            bank_funds=bank_details.dataValues.funds;
+        })
+        const sequelize = new Sequelize();
+
+        let funds = req.body.funds;
+        let amount = req.body.amount;
+        return sequelize.transaction(function(t){
+         return  card_details.update({funds:funds-amount},{where:{bank_account_no:req.body.bank_account_no}},{transaction:t}).then((result)=>{
+              return  card_details.update({funds:bank_funds+amount},{where:{name:"Bank"}},{transaction: t})
+            })
+
+        }).then((result)=>{
+            res.send("Payment Made");
+        })
+
+    }
+    else
+    {
+        res.send("Invalid OTP")
+        return false;
+    }
+
+
+
+})
+
+
 
 //--------------
 app.listen(3001,()=>{

@@ -8,6 +8,7 @@ var token = req.header('x-auth');
            if(err)
            {
                res.status(401).send("Unauthorized");
+               console.log("Unauthorized "+token);
                return false;
            }
            else if(token)

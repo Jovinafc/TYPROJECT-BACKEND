@@ -1,3 +1,5 @@
+
+
 const jwt = require('jsonwebtoken')
 let generateToken;
 var jwtDetails={
@@ -15,5 +17,6 @@ const jwtCreation=jwt.sign(jwtDetails,'secretkey',{
     generateToken=token;
     console.log(generateToken)
 });
+
 
 

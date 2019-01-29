@@ -13,6 +13,9 @@ const Sequelize = require('sequelize');
 const schedule = require('node-schedule');
 const moment = require('moment')
 const {authenticate} = require('./../middleware/authenticate');
+const speakeasy = require('speakeasy');
+const messagebird = require('messagebird')('qI8MEqDZ9CXHedPy870iEVIcx');
+const otplib = require('otplib');
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -44,6 +47,70 @@ app.post('/test-middleware',authenticate,(req,res)=>{
 })
 
 
+// const secret = `${'KVKFKRCPNZQUYMLXOVYDSQKJKZDTSRLD'+email}`
+//------- message testing
+app.post('/request-otp',(req,res)=>{
+    const email=req.body.email
+//      const secret = `${'KVKFKRCPNZQUYMLXOVYDSQKJKZDTSRLD'+email}`
+// // Alternatively: const secret = otplib.authenticator.generateSecret();
+//     console.log(secret)
+//     let token = otplib.authenticator.generate(secret);
+
+    //var secret = speakeasy.generateSecret({length: 20});
+    var secret = "IF2SKQRYHF4GOKCOGV3HCW2AMFVWCKSH"+email;
+    var token = speakeasy.totp({
+        secret: secret,
+        encoding: 'base32'
+    });
+
+
+    res.send(token)
+
+})
+
+
+app.post('/message',(req,res)=>{
+   //  const email = req.body.email;
+   //   const secret = `${'KVKFKRCPNZQUYMLXOVYDSQKJKZDTSRLD'+email}`
+   //  console.log(secret)
+   // let token = req.body.token;
+   //
+   //  const check = otplib.authenticator.verify({ token, secret });
+   //  if(check===true)
+   //  {
+   //      res.send("Valid OTP");
+   //      console.log("VALID OTP");
+   //
+   //  }
+   //  else
+   //  {
+   //      res.send("Invalid OTP");
+   //      console.log("INVALID OTP");
+   //  }
+    const email = req.body.email;
+    const secret = "IF2SKQRYHF4GOKCOGV3HCW2AMFVWCKSH"+email;
+    const token = req.body.token
+    const tokenValidates = speakeasy.totp.verify({
+        secret: secret,
+        encoding: 'base32',
+        token: token,
+        window: 6
+    });
+
+       if(tokenValidates===true)
+       {
+           res.send("Valid OTP")
+       }
+       else
+       {
+           res.send("Invalid OTP")
+       }
+
+
+})
+
+
+
 //----- testing logic
 app.post('/test-chaining',(req,res)=>{
     let user_id= req.body.user_id
@@ -62,7 +129,7 @@ app.post('/test-chaining',(req,res)=>{
 // testing scheduling
 app.post('/schedule-testing',(req,res)=>{
     let date= new Date(req.body.date);
- let test =[1,2,3];
+ //let test =[1,2,3];
   //  moment(date).format()
   //   let d = new Date(date.getFullYear(),date.getMonth(),date.getDay(),date.getHours(),date.getMinutes());
    // console.log(d)
@@ -73,14 +140,27 @@ app.post('/schedule-testing',(req,res)=>{
     let minutes = date.getMinutes();
 
 
+    let playstuff = req.body.name
+
         var date1 = new Date(year, month, day, hours, minutes, 0);
+        console.log(date)
+          if(req.body.type==="Job") {
+              var j =
+                  schedule.scheduleJob(playstuff,date1, function () {
+                      console.log(`${req.body.name}`);
+                  })
+              res.send('Task Initiated '+date1);
+          }
+          else if(req.body.type==="Cancel")
+          {
+              let my_job = schedule.scheduledJobs[playstuff]
+              my_job.cancel();
+              res.send('Task Cancelled'+date1);
+          }
 
-        var j = schedule.scheduleJob(date1, function(){
-            console.log('The world is going to end today.');
-        });
 
 
-    res.send('Task Initiated '+date1);
+
 })
 
 
@@ -328,7 +408,7 @@ app.post('/password',async (req,res)=>{
         const saltRounds = 10;
 
         const tokenCreation=await jwt.sign(jwtDetails, 'secretkey',{
-            expiresIn: '1h'
+            expiresIn:3600
         },(err, token) => {
             if (err) {
                 console.log(err)
@@ -341,8 +421,12 @@ app.post('/password',async (req,res)=>{
 
          jwt.verify(generateToken,'secretkey',function(err,token){
 
-             console.log(token.exp)
-                 res.send('worked');
+             console.log(token)
+            var expiresIn=3600;
+             var date = new Date(token.exp)
+             console.log(date)
+             const sendData={token,expiresIn}
+             res.send(sendData);
          })
 
 
