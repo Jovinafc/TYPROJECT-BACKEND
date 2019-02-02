@@ -9,7 +9,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       card_no: {
-        type: Sequelize.DOUBLE
+        type: Sequelize.STRING
       },
       name: {
         type: Sequelize.STRING

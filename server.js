@@ -12,6 +12,7 @@ var fs = require('fs');
 const Sequelize = require('sequelize');
 const schedule = require('node-schedule');
 const speakeasy = require('speakeasy');
+const nodemailer = require("nodemailer");
 
 
 //----models-----
@@ -519,7 +520,7 @@ app.post('/updateProduct',async (req,res)=>{
 
 //------------------------ Main Routes   --------------------------
 //-----------Fetch vehicle type---------
-app.get('/fetch-vehicle-type',authenticate,(req,res)=>{
+app.get('/fetch-vehicle-type',(req,res)=>{
     var vehicle_type=["Two-Wheelers","Four-Wheelers"];
     res.status(200).send(vehicle_type)
 })
@@ -559,7 +560,7 @@ app.get('/fetch-km_driven',(req,res)=>{
 })
 
 //--------------- Fetch Two wheeler brand------------
-app.get('/fetch-twoWheeler-brand',(req,res)=>{
+app.get('/fetch-twoWheeler-brand',authenticate,(req,res)=>{
     var brand=["Aprilia","Bajaj","Benelli","Hero","Honda ","KTM","Others"]
     res.status(200).send(brand)
 })
@@ -649,6 +650,9 @@ catch(error){
 //------ Buying Logic ----
 app.post('/buy-now',(req,res)=> {
     let vehicles = req.body.vehicles
+    let amount = req.body.amount;
+    let client_account_no = req.body.client_account_no;
+    let owner_account_no = req.body.owner_account_no;
     user.findOne({where:{user_id:vehicles.client_id}}).then((result)=>{
         client.create({
             vehicle_id:vehicles.vehicle_id,
@@ -669,15 +673,30 @@ app.post('/buy-now',(req,res)=> {
                 type:vehicles.type
             }).then((transactionResult)=>{
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
+                   card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
+                       card_details.update({funds:details4.dataValues.funds - amount}).then(()=>{
+
+
+                    card_details.findOne({where:{bank_account_no:owner_account_no}}).then((owner_details)=>{
+                             card_details.update({funds:amount+owner_details.dataValues.funds})
+                         })
+                       })
+                   })
+                     }).catch((e)=>res.status(403).send(e))
+                 }).catch((e)=>res.status(403).send(e))
+
+
                     res.send('Vehicle Sold')
+
                 })
             })
-        })
-    })
+
+
 
 })
 //---------- Renting Logic
 app.post('/rent-now',async (req,res)=>{
+
     let vehicle_id= req.body.vehicle_id;
     let start = req.body.start_date
     let end= req.body.end_date
@@ -690,6 +709,8 @@ app.post('/rent-now',async (req,res)=>{
     let client_bank_account= req.body.client_bank_account
     let amount = req.body.amount;
     let deposit = req.body.deposit;
+    let totalAmount = amount+deposit;
+
     const vehicle1=await vehicle.findOne({where: {vehicle_id: vehicle_id}}).then((result) => {
         user_id = result.dataValues.user_id;
         console.log(user_id)
@@ -700,10 +721,7 @@ app.post('/rent-now',async (req,res)=>{
     });
     const vehicle3=await  user.findOne({where: {user_id: user_client_id}}).then((result2) => {
         user_details.push(result2.dataValues)
-        // let test = [];
-        // test.push(owner_details)
-        // test.push(user_details)
-        // res.send(test)
+
 
     })
 
@@ -729,7 +747,9 @@ app.post('/rent-now',async (req,res)=>{
         start_date:start,
         end_date:end
     }).then((result4)=>{
-        vehicle.update({status:'RENTED'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
+
+
+                    vehicle.update({status:'RENTED'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
             let date= new Date(end);
             let year = date.getFullYear();
             let month = date.getMonth();
@@ -745,20 +765,38 @@ app.post('/rent-now',async (req,res)=>{
                   card_details.findOne({where:{bank_account_no: client_bank_account}}).then((details)=>{
                       client_funds= details.dataValues.funds;
                   card_details.findOne({where:{bank_account_no:owner_bank_account}}).then((details1)=>{
-                      owner_funds= details.dataValues.funds;
-                  })
+                      owner_funds= details1.dataValues.funds;
+                  card_details.findOne({where:{name:"Developer"}}).then((developer_details)=>{
+                      card_details.findOne({where:{name:"Bank"}}).then((bank_details)=>{
+                          //deducting funds from bank
+                          card_details.update({funds:bank_details.dataValues.funds - totalAmount}).then(()=>{
+                              //clients deposit being return
+                              card_details.update({funds:details.dataValues.funds + deposit}).then(()=>{
+                                  //owner being given his share
+                                  card_details.update({funds:details1.dataValues.funds + amount -100}).then(()=>{
+                                    // developer being given his share
+                                      card_details.update({funds:developer_details.dataValues.funds + 100}).then(()=>{
+                                          console.log("Payment Settled");
+                                      })
+                                  })
+                              })
+
+                          })
+
+
+                      })
+
                   })
 
-                   const sequelize = new Sequelize();
-                   return sequelize.transaction(function(t){
-                      return  card_details.update({})
-                    })
-                })
-            });
+                  })
+                  })
 
 
 
         })
+            });
+        })
+
     })
 
 
@@ -936,11 +974,12 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
 
     let filteredResult =[]
     let condition = req.body
+    console.log(condition)
 
 
     for (let filterType in condition) {
-        let filter = req.body[filterType].filterOption
-        let value = req.body[filterType].filterValue
+        let filter = req.body.filterOption
+        let value = req.body.filterValue
 
         console.log(filter + ' ' + value)
 
@@ -1048,7 +1087,7 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
     }
 
     res.send(filteredResult)
-    console.log(filteredResult)
+    //console.log(filteredResult)
 
 })
 
@@ -1056,14 +1095,24 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
 
 //--------
 //------ Update User Profile
-app.post('/update-user-profile',(req,res)=>{
+app.post('/update-user-profile',async (req,res)=>{
 let users = req.body.users;
-user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
+const update1 =await user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
     state:users.state,city:users.city,pincode:users.pincode,documents:clientURL
 },{where:
         {user_id:users.user_id}}).then((result)=>{
             res.send('User profile Updated')
 }).catch(e=>res.send(e))
+
+if(users.bank_account_no!==undefined) {
+    const update2 = await card_details.create({
+        name: users.first_name + "" + users.last_name,
+        bank_account_no: users.bank_account_no,
+        mobile_no: users.phone_number,
+        funds: 200000
+    })
+
+}
 
 })
 
@@ -1127,11 +1176,11 @@ app.post('/pay-now',(req,res)=>{
             res.status(404).send("Invalid Expiry Date")
 
         }
-        else if(result.dataValues.mobile_no!==card_details.mobile_no)
-        {
-            res.status(404).send("Not a Registered Mobile Number")
-
-        }
+        // else if(result.dataValues.mobile_no!==card_details.mobile_no)
+        // {
+        //     res.status(404).send("Not a Registered Mobile Number")
+        //
+        // }
         else if(result.dataValues.funds<card_details.amount)
         {
             res.status(404).send("Insufficient funds")
@@ -1153,6 +1202,41 @@ app.post('/request-otp',(req,res)=>{
         encoding: 'base32'
     });
 
+
+// async..await is not allowed in global scope, must use a wrapper
+    async function main(){
+
+        // Generate test SMTP service account from ethereal.email
+        // Only needed if you don't have a real mail account for testing
+        let account = await nodemailer.createTestAccount();
+
+        // create reusable transporter object using the default SMTP transport
+        let transporter = nodemailer.createTransport({
+            service:"gmail",
+
+            auth: {
+                user: "hpro401@gmail.com", // generated ethereal user
+                pass: "Zenfone5" // generated ethereal password
+            }
+        });
+
+        // setup email data with unicode symbols
+        let mailOptions = {
+            from: '"PocketWheelz" <pocketwheelz.com>', // sender address
+            to: `${email}`, // list of receivers
+            subject: "OTP CONFIRMATION", // Subject line
+            text: `Your OTP is : ${token}`, // plain text body
+
+        };
+
+        // send mail with defined transport object
+        let info = await transporter.sendMail(mailOptions)
+
+    }
+    res.send("worked")
+    main().catch(console.error);
+
+
     res.send(token)
 
 })
@@ -1171,26 +1255,51 @@ app.post('/confirm-payment',(req,res)=>{
         window: 6
     });
 
+    let transactionType= req.body.transactionType;
+
     if(tokenValidates===true)
     {
         //deduct funds from user
         let bank_funds=null;
-        card_details.findOne({where:{name:"Bank"}}).then((bank_details)=>{
-            bank_funds=bank_details.dataValues.funds;
-        })
-        const sequelize = new Sequelize();
 
-        let funds = req.body.funds;
-        let amount = req.body.amount;
-        return sequelize.transaction(function(t){
-         return  card_details.update({funds:funds-amount},{where:{bank_account_no:req.body.bank_account_no}},{transaction:t}).then((result)=>{
-              return  card_details.update({funds:bank_funds+amount},{where:{name:"Bank"}},{transaction: t})
+        if(transactionType==="rent")
+        {
+            card_details.findOne({where:{name:"Bank"}}).then((bank_details)=>{
+                bank_funds=bank_details.dataValues.funds;
+            })
+            const sequelize = new Sequelize();
+
+            let funds = req.body.funds;
+            let amount = req.body.amount;
+            return sequelize.transaction(function(t){
+                return  card_details.update({funds:funds-amount},{where:{bank_account_no:req.body.bank_account_no}},{transaction:t}).then((result)=>{
+                    return  card_details.update({funds:bank_funds+amount},{where:{name:"Bank"}},{transaction: t})
+
+                })
+
+            }).then((result)=>{
+                res.send("Payment Made");
             })
 
-        }).then((result)=>{
-            res.send("Payment Made");
-        })
+        }
+        else if(transactionType==="buy now") {
+            card_details.findOne({where: {name: "Bank"}}).then((bank_details) => {
+                bank_funds = bank_details.dataValues.funds;
+            })
+            const sequelize = new Sequelize();
 
+            let funds = req.body.funds;
+            let amount = req.body.amount;
+            return sequelize.transaction(function (t) {
+                return card_details.update({funds: funds - amount}, {where: {bank_account_no: req.body.client_bank_account_no}}, {transaction: t}).then((result) => {
+                    return card_details.update({funds: bank_funds + amount}, {where: {name: "Bank"}}, {transaction: t})
+
+                })
+
+            }).then((result) => {
+                res.send("Payment Made");
+            }).catch(e=>res.status(402).send(e))
+        }
     }
     else
     {

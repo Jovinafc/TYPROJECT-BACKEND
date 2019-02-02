@@ -16,6 +16,7 @@ const {authenticate} = require('./../middleware/authenticate');
 const speakeasy = require('speakeasy');
 const messagebird = require('messagebird')('qI8MEqDZ9CXHedPy870iEVIcx');
 const otplib = require('otplib');
+const nodemailer = require("nodemailer");
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -47,10 +48,59 @@ app.post('/test-middleware',authenticate,(req,res)=>{
 })
 
 
+
+
+
+
+
+app.post('/request-email',(req,res)=>{
+
+
+// async..await is not allowed in global scope, must use a wrapper
+    async function main(){
+
+        // Generate test SMTP service account from ethereal.email
+        // Only needed if you don't have a real mail account for testing
+        let account = await nodemailer.createTestAccount();
+
+        // create reusable transporter object using the default SMTP transport
+        let transporter = nodemailer.createTransport({
+            service:"gmail",
+
+            auth: {
+                user: "hpro401@gmail.com", // generated ethereal user
+                pass: "Zenfone5" // generated ethereal password
+            }
+        });
+
+        // setup email data with unicode symbols
+        let mailOptions = {
+            from: '"PocketWheelz" <pocketwheelz.com>', // sender address
+            to: "beast0013@mailinator.com", // list of receivers
+            subject: "Hello ✔", // Subject line
+            text: `${token}`, // plain text body
+            //html: "<b>Hello world?</b>" // html body
+        };
+
+        // send mail with defined transport object
+        let info = await transporter.sendMail(mailOptions)
+
+           }
+    res.send("worked")
+    main().catch(console.error);
+})
+
+
+
+
 // const secret = `${'KVKFKRCPNZQUYMLXOVYDSQKJKZDTSRLD'+email}`
 //------- message testing
 app.post('/request-otp',(req,res)=>{
     const email=req.body.email
+
+
+
+
 //      const secret = `${'KVKFKRCPNZQUYMLXOVYDSQKJKZDTSRLD'+email}`
 // // Alternatively: const secret = otplib.authenticator.generateSecret();
 //     console.log(secret)
@@ -63,8 +113,39 @@ app.post('/request-otp',(req,res)=>{
         encoding: 'base32'
     });
 
+    // async..await is not allowed in global scope, must use a wrapper
+    async function main(){
 
-    res.send(token)
+        // Generate test SMTP service account from ethereal.email
+        // Only needed if you don't have a real mail account for testing
+        let account = await nodemailer.createTestAccount();
+
+        // create reusable transporter object using the default SMTP transport
+        let transporter = nodemailer.createTransport({
+            service:"gmail",
+
+            auth: {
+                user: "hpro401@gmail.com", // generated ethereal user
+                pass: "Zenfone5" // generated ethereal password
+            }
+        });
+
+        // setup email data with unicode symbols
+        let mailOptions = {
+            from: '"PocketWheelz" <pocketwheelz.com>', // sender address
+            to: `${email}`, // list of receivers
+            subject: "OTP", // Subject line
+            text: `Your OTP is : ${token}`, // plain text body
+           // html: "<b>Hello world?</b>" // html body
+        };
+
+        // send mail with defined transport object
+        let info = await transporter.sendMail(mailOptions)
+
+    }
+
+    main().catch(console.error);
+    res.send("Worked")
 
 })
 
@@ -835,7 +916,38 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
 
 })
 
+app.post('/test-filter',(req,res)=>{
+    let condition = req.body;
+   // console.log(condition)
+    let filterOption =[];
+    let filterValue =[];
+    let result =[];
+    var obj = {};
+    for(let i in condition)
+    {
+        obj[condition[i].filterOption] = condition[i].filterValue
 
+        //console.log(Object.keys(condition[i]))
+
+    }
+    result.push(obj)
+
+    let test = JSON.stringify(result);
+    // var nietos = [];
+    //
+    // obj["01"] = "Test";
+    // obj["02"] = "Value";
+    // nietos.push(obj);
+
+
+
+
+    console.log(test)
+
+    res.send(test)
+
+
+})
 
 
 

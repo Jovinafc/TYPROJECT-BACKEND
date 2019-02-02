@@ -2,13 +2,13 @@ const user= require('./../models').user;
 const jwt = require('jsonwebtoken')
 
 var authenticate =(req,res,next)=>{
-var token = req.header('x-auth');
-
-    const decodedToken= jwt.verify(token,'secretkey',function(err,token){
+var token1 = req.header('authorization');
+console.log(token1);
+    const decodedToken= jwt.verify(token1,'secretkey',function(err,token){
            if(err)
            {
                res.status(401).send("Unauthorized");
-               console.log("Unauthorized "+token);
+               console.log("Unauthorized "+token1);
                return false;
            }
            else if(token)
