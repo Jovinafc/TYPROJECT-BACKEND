@@ -1160,18 +1160,21 @@ app.post('/fetch-vehicles-except-current-user',(req,res)=>{
 //------ Credit / Debit Card Routes
 app.post('/pay-now',(req,res)=>{
     //to verify a card
-    let card_details = req.body.card_details
-    card_details.findOne({where:{card_no:card_details.card_no}}).then((result)=>{
-        if(result.dataValues.name!==card_details.name)
+    let card_details1 = req.body.card_details
+    let cvv =card_details1.cvv
+
+    console.log(card_details1);
+    card_details.findOne({where:{card_no:card_details1.card_no}}).then((result)=>{
+        if(result.dataValues.name!==card_details1.name)
         {
             res.status(404).send("Invalid Name on Card")
         }
-        else if(result.dataValues.cvv!==card_details.cvv)
+        else if(result.dataValues.cvv!==parseInt(cvv))
         {
             res.status(404).send("Invalid CVV")
 
         }
-        else if(result.dataValues.expiry_date!==card_details.cvv)
+        else if(result.dataValues.expiry_date!==card_details1.expiry_date)
         {
             res.status(404).send("Invalid Expiry Date")
 
@@ -1181,17 +1184,17 @@ app.post('/pay-now',(req,res)=>{
         //     res.status(404).send("Not a Registered Mobile Number")
         //
         // }
-        else if(result.dataValues.funds<card_details.amount)
+        else if(result.dataValues.funds<card_details1.amount)
         {
             res.status(404).send("Insufficient funds")
 
         }
         else
         {
-            const funds= result.dataValues.funds;
-            res.send(funds)
+            // const funds= result.dataValues.funds;
+            res.send("VALID")
         }
-    })
+    }).catch(e=>res.status(403).send("INVALID CARD"))
 })
 //---- request an OTP ----
 app.post('/request-otp',(req,res)=>{
@@ -1213,7 +1216,8 @@ app.post('/request-otp',(req,res)=>{
         // create reusable transporter object using the default SMTP transport
         let transporter = nodemailer.createTransport({
             service:"gmail",
-
+            secure: false,
+            tls: { rejectUnauthorized: false },
             auth: {
                 user: "hpro401@gmail.com", // generated ethereal user
                 pass: "Zenfone5" // generated ethereal password
@@ -1237,7 +1241,7 @@ app.post('/request-otp',(req,res)=>{
     main().catch(console.error);
 
 
-    res.send(token)
+    // res.send(token)
 
 })
 
@@ -1300,10 +1304,11 @@ app.post('/confirm-payment',(req,res)=>{
                 res.send("Payment Made");
             }).catch(e=>res.status(402).send(e))
         }
+        res.send("VALID")
     }
     else
     {
-        res.send("Invalid OTP")
+        res.status(404).send("Invalid OTP")
         return false;
     }
 
