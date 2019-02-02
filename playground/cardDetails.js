@@ -2,7 +2,7 @@ const card_details = require('./../models').card_details;
 
 card_details.bulkCreate([{
     card_no: "378282246310005",
-    name:"Lionel Dsouza",
+    name:"LIONEL DSOUZA",
     cvv:123,
     expiry_date:"01/22",
     bank_account_no:"021000021",
@@ -12,7 +12,7 @@ card_details.bulkCreate([{
 },
     {
         card_no: "6011111111111117",
-        name:"Jovin Dsouza",
+        name:"JOVIN DSOUZA",
         cvv:123,
         expiry_date:"01/23",
         bank_account_no:"011401533",
@@ -21,7 +21,7 @@ card_details.bulkCreate([{
     },
     {
         card_no: "5555555555554444",
-        name:"Rohan Dsouza",
+        name:"ROHAN DSOUZA",
         cvv:125,
         expiry_date:"02/23",
         bank_account_no:"091000019",
@@ -30,7 +30,7 @@ card_details.bulkCreate([{
     },
     {
         card_no: "4111111111111111",
-        name:"Joesph Castellino",
+        name:"JOESPH CASTELLINO",
         cvv:135,
         expiry_date:"02/25",
         bank_account_no:"091000010",
