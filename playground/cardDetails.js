@@ -37,6 +37,18 @@ card_details.bulkCreate([{
         mobile_no:9886235776,
         funds:200000
 
+    },
+    {
+        name:"Bank",
+        bank_account_no:"001000000",
+        mobile_no:9886235776,
+        funds:200000
+    },
+    {
+        name:"Developer",
+        bank_account_no:"001000001",
+        mobile_no:9856234585,
+        funds:200000
     }
 
 
