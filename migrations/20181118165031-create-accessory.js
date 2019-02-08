@@ -12,7 +12,7 @@ module.exports = {
         type: Sequelize.STRING
       },
         accessory_image: {
-        type: Sequelize.BLOB
+        type: Sequelize.STRING
       },
         accessory_details: {
         type: Sequelize.STRING

@@ -26,6 +26,7 @@ const rent = require('./models').rent;
 const owner = require('./models').owner;
 const client = require('./models').client;
 const card_details = require('./models').card_details
+const accessory = require('./models').accessory
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -1315,7 +1316,27 @@ app.post('/confirm-payment',(req,res)=>{
 
 
 })
+//----- Accessories-----
+//------ Fetch All Accessories
+app.post('/fetch-accessories',(req,res)=>{
+    let result_array =[];
+    accessory.findAll().then((result)=>{
+       for (let i in result)
+       {
+           console.log(result[i].dataValues)
+           result_array.push(result[i].dataValues)
+       }
 
+        res.send(result_array)
+    })
+})
+
+//---- Fetch Specific Accessory
+app.post('/fetch-specific-accessory',(req,res)=>{
+    accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+        res.send(result.dataValues)
+    })
+})
 
 
 //--------------

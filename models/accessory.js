@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
     },
       accessory_name: DataTypes.STRING,
-      accessory_image: DataTypes.BLOB,
+      accessory_image: DataTypes.STRING,
       accessory_details: DataTypes.STRING,
       accessory_type:DataTypes.STRING,
       accessory_price: DataTypes.BIGINT,
