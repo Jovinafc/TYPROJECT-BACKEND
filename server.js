@@ -27,6 +27,7 @@ const owner = require('./models').owner;
 const client = require('./models').client;
 const card_details = require('./models').card_details
 const accessory = require('./models').accessory
+const cart_storage = require('./models').cart_storage
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -1240,7 +1241,7 @@ app.post('/request-otp',(req,res)=>{
     }
     res.send("worked")
     main().catch(console.error);
-
+    console.log("OTP Sent")
 
     // res.send(token)
 
@@ -1337,6 +1338,60 @@ app.post('/fetch-specific-accessory',(req,res)=>{
         res.send(result.dataValues)
     })
 })
+
+//--- Updating Product ---
+app.post('/cartDetails',(req,res)=>{
+    cart_storage.findAll({where:{user_id:req.body.user_id}}).then((result)=>{
+        let details=[];
+        for(let i in result)
+        {
+            details.push(result[i].dataValues)
+        }
+        res.send(details);
+    })
+})
+
+
+app.post('/addCart',(req,res)=>{
+    cart_storage.create({
+       user_id:req.body.user_id,
+       accessory_id:req.body.accessory_id,
+       quantity:req.body.quantity
+
+    }).then(()=>{
+        res.send("Added To Cart")
+    })
+
+
+})
+
+app.post('/updateCart',(req,res)=>{
+    const Op = Sequelize.Op;
+    cart_storage.update({quantity:req.body.quantity},{where:{ [Op.and]:[{ accessory_id:req.body.accessory_id,user_id:req.body.user_id}]}}).then((result)=>{
+        res.send("Item Updated")
+    })
+})
+
+app.post('/cartItems',(req,res)=>{
+cart_storage.findAndCountAll({where:{user_id:req.body.user_id}}).then((result)=>{
+   // console.log(result.count);
+   var count = result.count;
+   //console.log(count);
+   // res.send(count);
+    let details=[];
+    for(let i in result.rows)
+    {
+
+        details.push(result.rows[i].dataValues)
+    }
+    let sendDetails ={
+        count,details
+    }
+
+    res.send(sendDetails);
+})
+})
+
 
 
 //--------------
