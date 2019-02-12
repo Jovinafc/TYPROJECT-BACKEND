@@ -206,6 +206,11 @@ app.post('/test-chaining',(req,res)=>{
     }).catch(e=>res.send(e))
 })
 
+app.post('/math',(req,res)=>{
+    let a = 10
+    let b = 20
+    res.send("Answer is:"+(a-b))
+})
 
 // testing scheduling
 app.post('/schedule-testing',(req,res)=>{

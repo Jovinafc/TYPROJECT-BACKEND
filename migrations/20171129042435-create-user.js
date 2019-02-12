@@ -44,6 +44,9 @@ module.exports = {
         documents:{
           type:Sequelize.STRING
         },
+        bank_account_no:{
+          type:Sequelize.STRING
+        },
 
       createdAt: {
         allowNull: false,

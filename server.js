@@ -749,8 +749,6 @@ app.post('/rent-now',async (req,res)=>{
         start_date:start,
         end_date:end
     }).then((result4)=>{
-
-
                     vehicle.update({status:'RENTED'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
             let date= new Date(end);
             let year = date.getFullYear();
@@ -876,8 +874,22 @@ app.post('/fetch-specific-vehicle/:id',(req,res)=>{
     const Op = Sequelize.Op;
     let vehicle_id= req.params.id;
     let user_id=req.body.user_id;
+    let sendDetails =[]
+    let user_details={};
+
     vehicle.findOne({where:{vehicle_id:vehicle_id,user_id:{[Op.ne]:user_id}}}).then((result)=>{
-        res.send(result.dataValues)
+
+        sendDetails.push(result.dataValues);
+        user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
+            user_details={
+                bank_account_no:result1.dataValues.bank_account_no
+            }
+            sendDetails.push(user_details)
+            res.send(sendDetails)
+
+        })
+
+
     }).catch(error=>res.status(400).send(error))
 
 })
@@ -1353,13 +1365,39 @@ app.post('/cartDetails',(req,res)=>{
 
 
 app.post('/addCart',(req,res)=>{
-    cart_storage.create({
-       user_id:req.body.user_id,
-       accessory_id:req.body.accessory_id,
-       quantity:req.body.quantity
 
-    }).then(()=>{
-        res.send("Added To Cart")
+    const Op = Sequelize.Op;
+    accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result1)=> {
+    if(result1.dataValues.accessory_qty===0)
+    {
+        res.send('Out Of Stock')
+        return false;
+    }
+
+        cart_storage.findOne({where: {[Op.and]: [{user_id: req.body.user_id}, {accessory_id: req.body.accessory_id}]}}).then((result) => {
+
+            if (result === null) {
+                cart_storage.create({
+                    user_id: req.body.user_id,
+                    accessory_id: req.body.accessory_id,
+                    quantity: 1
+
+                }).then(() => {
+                    accessory.findOne({where: {accessory_id: req.body.accessory_id}}).then((result) => {
+                        accessory.update({accessory_qty: result.dataValues.accessory_qty - 1}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
+                            res.send("Added To Cart")
+                        })
+
+                    })
+
+                })
+            }
+            else {
+
+                res.send('Item Exist')
+            }
+        })
+
     })
 
 
@@ -1367,32 +1405,159 @@ app.post('/addCart',(req,res)=>{
 
 app.post('/updateCart',(req,res)=>{
     const Op = Sequelize.Op;
-    cart_storage.update({quantity:req.body.quantity},{where:{ [Op.and]:[{ accessory_id:req.body.accessory_id,user_id:req.body.user_id}]}}).then((result)=>{
-        res.send("Item Updated")
-    })
-})
-
-app.post('/cartItems',(req,res)=>{
-cart_storage.findAndCountAll({where:{user_id:req.body.user_id}}).then((result)=>{
-   // console.log(result.count);
-   var count = result.count;
-   //console.log(count);
-   // res.send(count);
-    let details=[];
-    for(let i in result.rows)
+    let fetchedQty=0;
+    if(req.body.quantity===0)
     {
+        cart_storage.findOne({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((fetchQty)=>{
+            fetchedQty = fetchQty.dataValues.quantity;
+        })
+        cart_storage.destroy({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result1)=>{
+            accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+                accessory.update({accessory_qty:result.dataValues.accessory_qty+fetchedQty},{where:{accessory_id:req.body.accessory_id}}).then(()=>{
+                    res.send("Added To Cart")
+                })
 
+            })
+
+            res.send('Item Removed')
+        })
+
+    }
+    else {
+        accessory.findOne({where: {accessory_id: req.body.accessory_id}}).then((result) => {
+            let qty = result.dataValues.accessory_qty
+            let totalqty=0;
+            let cartqty=0;
+
+          cart_storage.findAll({where:{accessory_id:req.body.accessory_id}}).then((details)=>{
+              for(let i in details)
+              {
+                  totalqty = totalqty + details[i].dataValues.quantity
+                  cartqty = cartqty + details[i].dataValues.quantity
+              }
+              totalqty=totalqty+qty;
+              console.log("Cart "+cartqty+" total: "+totalqty)
+
+                let available = totalqty - cartqty;
+                console.log("Available"+available);
+
+
+
+                cart_storage.findOne({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result1)=>{
+                let fetchedQuantity = result1.dataValues.quantity;
+                console.log("fetchedQuantity"+fetchedQuantity)
+                    let updatedQuantity=0;
+
+                    updatedQuantity = fetchedQuantity - req.body.quantity
+                console.log("Updated Quantity"+updatedQuantity);
+                if(updatedQuantity===0)
+                {
+                    res.send("No Changes Made in Cart")
+                    return false;
+                }
+
+
+                let quan = req.body.quantity+cartqty+available-req.body.quantity
+                if(quan !== 10)
+                {
+                    res.send("Insufficient Quantity")
+                    return false;
+                }
+
+
+                cart_storage.update({quantity: req.body.quantity}, {
+                    where: {
+                        [Op.and]: [{
+                            accessory_id: req.body.accessory_id,
+                            user_id: req.body.user_id
+                        }]
+                    }
+                }).then((result1) => {
+                    accessory.update({accessory_qty: available+updatedQuantity}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
+                        res.send("Item Updated")
+                    })
+                })
+                })
+
+        })
+        })
+    }
+})
+
+app.post('/cartItems',async (req,res)=>{
+    const Op = Sequelize.Op;
+    let count="";
+    let sendDetails={};
+    let details=[];
+    let accessory_details=[];
+    let accessory_id=[];
+    const start =await cart_storage.findAndCountAll({where:{user_id:req.body.user_id}}).then((result)=>{
+         count = result.count;
+
+    for(let i in result.rows)
+    {  accessory_id.push( result.rows[i].dataValues.accessory_id)
         details.push(result.rows[i].dataValues)
-    }
-    let sendDetails ={
-        count,details
+
     }
 
-    res.send(sendDetails);
-})
-})
+        accessory.findAll({where:{accessory_id:{[Op.in]:[accessory_id]}}}).then((result1)=>{
+          for(let i in result1)
+          {
+             // console.log(result1[i].dataValues)
+              accessory_details.push(result1[i].dataValues)
+          }
+
+            sendDetails ={
+                count,details,accessory_details
+            }
+            res.send(sendDetails);
+        })
 
 
+
+
+
+    })
+
+
+
+
+
+
+})
+
+app.post('/removeCart',(req,res)=>{
+    const Op = Sequelize.Op;
+
+   cart_storage.findOne({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result)=>{
+       console.log(result)
+       if(result===0)
+        {
+            res.send("Item does not exist")
+        }
+       else {
+            cart_storage.destroy({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result1) => {
+                accessory.update({accessory_qty: result.dataValues.quantity + req.body.quantity}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
+                    res.send('Item Removed')
+                })
+            }).catch(e => res.send(e))
+        }
+   })
+})
+
+app.post('/buy-accessories',(req,res)=>{
+    let qty=null;
+    accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+         qty=result.dataValues.accessory_qty;
+        res.send("qty: "+qty);
+    })
+    if(qty===0)
+    {
+        res.send("Out Of Stock")
+    }
+
+
+})
 
 //--------------
 app.listen(3001,()=>{
