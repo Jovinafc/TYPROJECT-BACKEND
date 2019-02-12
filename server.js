@@ -1547,16 +1547,18 @@ app.post('/removeCart',(req,res)=>{
 
 app.post('/buy-accessories',(req,res)=>{
     let qty=null;
-    accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
-         qty=result.dataValues.accessory_qty;
-        res.send("qty: "+qty);
+    cart_storage.destroy({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result)=>{
+        if(result===null)
+        {
+            res.send('Item Does Not exist in Cart')
+            return false;
+        }
+        else
+        {
+            res.send("Item removed From Cart");
+        }
+
     })
-    if(qty===0)
-    {
-        res.send("Out Of Stock")
-    }
-
-
 })
 
 //--------------
