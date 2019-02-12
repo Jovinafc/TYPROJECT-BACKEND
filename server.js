@@ -1547,7 +1547,7 @@ app.post('/removeCart',(req,res)=>{
 
 app.post('/buy-accessories',(req,res)=>{
     let qty=null;
-    cart_storage.destroy({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result)=>{
+    cart_storage.destroy({where:{user_id:req.body.user_id}}).then((result)=>{
         if(result===null)
         {
             res.send('Item Does Not exist in Cart')
