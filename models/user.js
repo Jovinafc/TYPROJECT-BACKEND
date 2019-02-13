@@ -16,7 +16,8 @@ module.exports = (sequelize, DataTypes) => {
     state:DataTypes.STRING,
     city:DataTypes.STRING,
     pincode:DataTypes.STRING,
-    documents:DataTypes.STRING
+    documents:DataTypes.STRING,
+    bank_account_no:DataTypes.STRING
 
 
   }, {underscore:true});
