@@ -1237,11 +1237,11 @@ app.post('/request-otp',(req,res)=>{
 
         // send mail with defined transport object
         let info = await transporter.sendMail(mailOptions)
-
+        
     }
     res.send("worked")
     main().catch(console.error);
-    console.log("OTP Sent")
+    console.log('Otp sent')
 
     // res.send(token)
 
@@ -1324,7 +1324,6 @@ app.post('/fetch-accessories',(req,res)=>{
     accessory.findAll().then((result)=>{
        for (let i in result)
        {
-           console.log(result[i].dataValues)
            result_array.push(result[i].dataValues)
        }
 
@@ -1346,7 +1345,9 @@ app.post('/cartDetails',(req,res)=>{
         for(let i in result)
         {
             details.push(result[i].dataValues)
+            console.log(result[i].dataValues)
         }
+        
         res.send(details);
     })
 })
