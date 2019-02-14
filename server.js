@@ -1504,7 +1504,7 @@ app.post('/cartItems',async (req,res)=>{
         accessory.findAll({where:{accessory_id:{[Op.in]:[accessory_id]}}}).then((result1)=>{
           for(let i in result1)
           {
-             // console.log(result1[i].dataValues)
+
               accessory_details.push(result1[i].dataValues)
           }
 
@@ -1537,13 +1537,24 @@ app.post('/removeCart',(req,res)=>{
             res.send("Item does not exist")
         }
        else {
-            cart_storage.destroy({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result1) => {
-                accessory.update({accessory_qty: result.dataValues.quantity + req.body.quantity}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
+           cart_storage.destroy({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result1) => {
+
+               accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((details_cart)=>{
+                   console.log(details_cart.dataValues.accessory_qty + req.body.quantity)
+                accessory.update({accessory_qty: details_cart.dataValues.accessory_qty + req.body.quantity}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
+
                     res.send('Item Removed')
+
+
+
+
                 })
+               })
             }).catch(e => res.send(e))
+
         }
    })
+
 })
 
 app.post('/buy-accessories',(req,res)=>{

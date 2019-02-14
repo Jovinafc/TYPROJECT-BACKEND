@@ -207,9 +207,22 @@ app.post('/test-chaining',(req,res)=>{
 })
 
 app.post('/math',(req,res)=>{
-    let a = 10
-    let b = 20
-    res.send("Answer is:"+(a-b))
+    const sequelize = new Sequelize({
+        database: 'test',
+        username: 'root',
+        password: 'root',
+        dialect: 'mysql'
+    });
+    sequelize.query('select accessory_id, sum(quantity) from test.cart_storages where accessory_id = :id group by accessory_id',{replacements:{id:10},type: sequelize.QueryTypes.SELECT}).then((result)=>{
+        console.log(result)
+        let display=[];
+        for(let i in result)
+        {
+            display.push(result[i])
+        }
+
+        res.send(display)
+    })
 })
 
 // testing scheduling
@@ -226,7 +239,7 @@ app.post('/schedule-testing',(req,res)=>{
     let minutes = date.getMinutes();
 
 
-    let playstuff = req.body.name
+    let playstuff = req.body.name;
 
         var date1 = new Date(year, month, day, hours, minutes, 0);
         console.log(date)
