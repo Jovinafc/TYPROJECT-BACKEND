@@ -1412,13 +1412,12 @@ app.post('/updateCart',(req,res)=>{
 
         if(fetched_quantity > quantity)
         {
-            cart_storage.update({quantity:quantity},{where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then(()=>{
+         //   cart_storage.update({quantity:quantity},{where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then(()=>{
 
-
-            accessory.update({accessory_qty:result.dataValues.accessory_qty-quantity},{where:{accessory_id:req.body.accessory_id}}).then(()=>{
+        cart_storage.update({accessory_qty:result.dataValues.accessory_qty-quantity},{where:{accessory_id:req.body.accessory_id}}).then(()=>{
                 res.send("Added To Cart")
             })
-            })
+          //  })
         }
         else
         {
