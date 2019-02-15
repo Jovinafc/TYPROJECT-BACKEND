@@ -1550,9 +1550,6 @@ app.post('/cartItems',async (req,res)=>{
         })
 
 
-
-
-
     })
 
 
