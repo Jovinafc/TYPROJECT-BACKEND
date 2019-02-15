@@ -653,8 +653,8 @@ catch(error){
 app.post('/buy-now',(req,res)=> {
     let vehicles = req.body.vehicles
     let amount = req.body.amount;
-    let client_account_no = req.body.client_account_no;
-    let owner_account_no = req.body.owner_account_no;
+    let client_account_no = vehicles.client_bank_account;
+    let owner_account_no = vehicles.owner_bankaccount;
     user.findOne({where:{user_id:vehicles.client_id}}).then((result)=>{
         client.create({
             vehicle_id:vehicles.vehicle_id,
@@ -1405,6 +1405,29 @@ app.post('/addCart',(req,res)=>{
 })
 
 app.post('/updateCart',(req,res)=>{
+    const Op = Sequelize.Op;
+    let quantity = req.body.quantity;
+    accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+        let fetched_quantity= result.dataValues.accessory_qty;
+
+        if(fetched_quantity > quantity)
+        {
+            accessory.update({accessory_qty:result.dataValues.accessory_qty-quantity},{where:{accessory_id:req.body.accessory_id}}).then(()=>{
+                res.send("Added To Cart")
+            })
+        }
+        else
+        {
+            res.send("OUT OF STOCK"+{count:fetched_quantity})
+        }
+
+
+
+    })
+})
+
+
+app.post('/updateCart1',(req,res)=>{
     const Op = Sequelize.Op;
     let fetchedQty=0;
     if(req.body.quantity===0)
