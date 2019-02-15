@@ -1493,7 +1493,13 @@ app.post('/cartItems',async (req,res)=>{
     let accessory_details=[];
     let accessory_id=[];
     const start =await cart_storage.findAndCountAll({where:{user_id:req.body.user_id}}).then((result)=>{
-         count = result.count;
+      console.log(result)
+        if(result.count===0)
+        {
+            res.send({count:0})
+            return false;
+        }
+        count = result.count;
 
     for(let i in result.rows)
     {  accessory_id.push( result.rows[i].dataValues.accessory_id)
@@ -1507,10 +1513,11 @@ app.post('/cartItems',async (req,res)=>{
 
               accessory_details.push(result1[i].dataValues)
           }
-
+          
             sendDetails ={
                 count,details,accessory_details
             }
+
             res.send(sendDetails);
         })
 
