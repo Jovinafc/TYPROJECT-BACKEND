@@ -1410,7 +1410,7 @@ app.post('/updateCart',(req,res)=>{
     accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
         let fetched_quantity= result.dataValues.accessory_qty;
 
-        if(fetched_quantity > quantity)
+        if(fetched_quantity >= quantity)
         {
            cart_storage.update({quantity:quantity},{where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then(()=>{
 
@@ -1518,6 +1518,7 @@ app.post('/cartItems',async (req,res)=>{
     let details=[];
     let accessory_details=[];
     let accessory_id=[];
+    let cart_quantity=null;
     const start =await cart_storage.findAndCountAll({where:{user_id:req.body.user_id}}).then((result)=>{
       console.log(result)
         if(result.count===0)
@@ -1532,6 +1533,7 @@ app.post('/cartItems',async (req,res)=>{
         details.push(result.rows[i].dataValues)
 
     }
+    cart_quantity = result[0].dataValues.quantity
 
         accessory.findAll({where:{accessory_id:{[Op.in]:[accessory_id]}}}).then((result1)=>{
           for(let i in result1)
@@ -1541,7 +1543,7 @@ app.post('/cartItems',async (req,res)=>{
           }
           
             sendDetails ={
-                count,details,accessory_details
+                count,details,accessory_details,cart_quantity
             }
 
             res.send(sendDetails);
