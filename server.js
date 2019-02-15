@@ -758,7 +758,7 @@ app.post('/rent-now',async (req,res)=>{
             let minutes = date.getMinutes();
             var date1 = new Date(year, month, day, hours, minutes, 0);
             res.send('Vehicle Rented');
-            var j = schedule.scheduleJob(date1, function(){
+            var j = schedule.scheduleJob(user_client_id,date1, function(){
                 let owner_funds=null;
                 let client_funds=null;
                 vehicle.update({status:'AVAILABLE'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
@@ -1412,8 +1412,12 @@ app.post('/updateCart',(req,res)=>{
 
         if(fetched_quantity > quantity)
         {
+            cart_storage.update({quantity:quantity},{where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then(()=>{
+
+
             accessory.update({accessory_qty:result.dataValues.accessory_qty-quantity},{where:{accessory_id:req.body.accessory_id}}).then(()=>{
                 res.send("Added To Cart")
+            })
             })
         }
         else
@@ -1602,7 +1606,16 @@ app.post('/buy-accessories',(req,res)=>{
 
     })
 })
+//-----Cancel a Booking ---
+app.post('/cancel-booking',(req,res)=>{
+    let my_job = schedule.scheduledJobs[req.body.user_client_id]
+    my_job.cancel();
+    vehicle.update({status:"AVAILABLE"},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
+        res.send("Booking Cancelled");
+        }
+    )
 
+})
 //--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')
