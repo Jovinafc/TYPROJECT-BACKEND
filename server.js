@@ -1541,9 +1541,9 @@ app.post('/cartItems',async (req,res)=>{
 
               accessory_details.push(result1[i].dataValues)
           }
-          
+          accessory_details.push(cart_quantity);
             sendDetails ={
-                count,details,accessory_details,cart_quantity
+                count,details,accessory_details
             }
 
             res.send(sendDetails);
