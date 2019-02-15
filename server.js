@@ -1384,12 +1384,12 @@ app.post('/addCart',(req,res)=>{
                     quantity: 1
 
                 }).then(() => {
-                    accessory.findOne({where: {accessory_id: req.body.accessory_id}}).then((result) => {
-                        accessory.update({accessory_qty: result.dataValues.accessory_qty - 1}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
-                            res.send("Added To Cart")
-                        })
+                    // accessory.findOne({where: {accessory_id: req.body.accessory_id}}).then((result) => {
+                    //     accessory.update({accessory_qty: result.dataValues.accessory_qty - 1}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
+                           res.send("Added To Cart")
+                    //     })
 
-                    })
+                    // })
 
                 })
             }
