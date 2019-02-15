@@ -213,16 +213,18 @@ app.post('/math',(req,res)=>{
         password: 'root',
         dialect: 'mysql'
     });
-    sequelize.query('select accessory_id, sum(quantity) from test.cart_storages where accessory_id = :id group by accessory_id',{replacements:{id:10},type: sequelize.QueryTypes.SELECT}).then((result)=>{
-        console.log(result)
-        let display=[];
-        for(let i in result)
-        {
-            display.push(result[i])
-        }
+    // sequelize.query('select accessory_id, sum(quantity) from test.cart_storages where accessory_id = :id group by accessory_id',{replacements:{id:10},type: sequelize.QueryTypes.SELECT}).then((result)=>{
+    //     console.log(result)
+    //     let display=[];
+    //     for(let i in result)
+    //     {
+    //         display.push(result[i])
+    //     }
+    //
+    //     res.send(display)
+    // })
 
-        res.send(display)
-    })
+    sequelize.query('select * from ')
 })
 
 // testing scheduling

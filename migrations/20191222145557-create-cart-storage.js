@@ -12,7 +12,11 @@ module.exports = {
         type: Sequelize.BIGINT
       },
       accessory_id:{
-          type:Sequelize.BIGINT
+          type:Sequelize.BIGINT,
+          references:{
+              model:"accessories",
+              key:"accessory_id"
+          }
       },
         quantity:{
           type:Sequelize.BIGINT

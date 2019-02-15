@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       accessory_qty:DataTypes.BIGINT
   }, {});
   accessory.associate = function(models) {
-  // accessory.hasMany(models.purchase,{foreignKey:'accessory_id'})
+  accessory.hasMany(models.cart_storage,{foreignKey:'accessory_id'})
   };
   return accessory;
 };

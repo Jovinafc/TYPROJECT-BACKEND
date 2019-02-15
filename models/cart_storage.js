@@ -1,7 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const cart_storage = sequelize.define('cart_storage', {
-    user_id: DataTypes.BIGINT,
+      user_id: DataTypes.BIGINT,
     accessory_id:DataTypes.BIGINT,
     quantity:DataTypes.BIGINT
   }, {});

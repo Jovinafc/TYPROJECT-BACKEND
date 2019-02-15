@@ -7,6 +7,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.BIGINT
+
       },
         accessory_name: {
         type: Sequelize.STRING
