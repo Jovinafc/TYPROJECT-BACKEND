@@ -1627,7 +1627,7 @@ app.post('/buy-accessories',(req,res)=>{
 
 })
 
-//accessory buy
+//----accessory buy
 app.post('/direct-buy-check',(req,res)=>{
     let accessory_id = req.body.accessory_id;
     let user_id = req.body.user_id;
