@@ -1656,9 +1656,15 @@ app.post('/direct-buy',(req,res)=>{
                 return false;
             }
             card_details.update({funds:bank_details.result.funds - req.body.amount},{where:{bank_account_no:req.body.bank_account_no}}).then(()=>{
-                card_details.findOne({where:{name:"Bank"}}).then((details)=>{
-                    card_details.update({funds:details.dataValues.funds + req.body.amount},{where:{name:"Bank"}}).then(()=>{
-                        res.send("Accessory Purchased")
+                card_details.findOne({where:{name:"Bank"}}).then((details)=> {
+                    card_details.update({funds: details.dataValues.funds + req.body.amount}, {where: {name: "Bank"}}).then(() => {
+
+
+                        card_details.update({funds: details.dataValues.funds - req.body.amount}, {where: {name: "Bank"}}).then(() => {
+                            card_details.update({funds: details.dataValues.funds + req.body.amount}, {where: {name: "Developer"}}).then(() => {
+                                res.send("Accessory Purchased")
+                            })
+                        })
                     })
                 })
             })
