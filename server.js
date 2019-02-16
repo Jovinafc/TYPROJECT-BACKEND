@@ -732,8 +732,8 @@ app.post('/rent-now',async (req,res)=>{
         user_id:user_client_id,
         name:user_details[0].first_name,
         address:user_details[0].address,
-        //city:req.body.details.city,
-       // pincode:req.body.details.pincode,
+        city:req.body.details.city,
+        pincode:req.body.details.pincode,
         mobile_no:user_details[0].phone_number,
         email:user_details[0].email,
         DOB:user_details[0].DOB,
@@ -758,7 +758,7 @@ app.post('/rent-now',async (req,res)=>{
             let minutes = date.getMinutes();
             var date1 = new Date(year, month, day, hours, minutes, 0);
             res.send('Vehicle Rented');
-            var j = schedule.scheduleJob(user_client_id,date1, function(){
+            var j = schedule.scheduleJob(vehicle_id,date1, function(){
                 let owner_funds=null;
                 let client_funds=null;
                 vehicle.update({status:'AVAILABLE'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
@@ -1695,7 +1695,7 @@ app.post('/direct-buy',(req,res)=>{
 
 //-----Cancel a Booking ---
 app.post('/cancel-booking',(req,res)=>{
-    let my_job = schedule.scheduledJobs[req.body.user_client_id]
+    let my_job = schedule.scheduledJobs[req.body.vehicle_id]
     my_job.cancel();
     vehicle.update({status:"AVAILABLE"},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
         res.send("Booking Cancelled");
