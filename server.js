@@ -1591,20 +1591,71 @@ app.post('/removeCart',(req,res)=>{
 })
 
 app.post('/buy-accessories',(req,res)=>{
+    const Op = Sequelize.Op;
     let qty=null;
-    cart_storage.destroy({where:{user_id:req.body.user_id}}).then((result)=>{
-        if(result===null)
+    cart_storage.findOne({where:{[Op.and]:{user_id:req.body.user_id,accessory_id:req.body.accessory_id}}}).then((acc)=>{
+        if(acc===null)
         {
             res.send('Item Does Not exist in Cart')
             return false;
         }
-        else
+        else {
+            qty=acc.dataValues.quantity
+
+                accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result1)=> {
+                    if(qty>result1.dataValues.accessory_qty)
+                    {
+                        res.send('Item out of stock')
+                        return false;
+                    }
+
+
+            cart_storage.destroy({where:{[Op.and]:{user_id:req.body.user_id,accessory_id:req.body.accessory_id}}}).then((result)=>{
+
+
+
+
+                    accessory.update({accessory_qty:result1.dataValues.accessory_qty - qty}, {where: {accessory_id: req.body.accessory_id}}).then((done) => {
+                        res.send("Item removed From Cart");
+                    })
+                })
+
+
+            })
+        }
+    })
+
+})
+
+//accessory buy
+app.post('/direct-buy-check',(req,res)=>{
+    let accessory_id = req.body.accessory_id;
+    let user_id = req.body.user_id;
+    let quantity = req.body.quantity;
+    accessory.findOne({where:{accessory_id:accessory_id}}).then((result)=>{
+        if(quantity>result.dataValues.accessory_qty)
         {
-            res.send("Item removed From Cart");
+            res.send('Insufficient Stock');
+        }
+        else {
+            res.send("Item Available")
         }
 
-    })
+        }
+    )
 })
+
+app.post('/direct-buy',(req,res)=>{
+    accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+        accessory.update({accessory_qty:result.dataValues.accessory_qty - req.body.quantity}).then(()=>{
+            res.send("Accessory Purchased")
+        })
+        }
+    ).catch(e=>res.send(e))
+})
+
+
+
 //-----Cancel a Booking ---
 app.post('/cancel-booking',(req,res)=>{
     let my_job = schedule.scheduledJobs[req.body.user_client_id]
