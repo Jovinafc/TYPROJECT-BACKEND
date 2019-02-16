@@ -1126,7 +1126,7 @@ const update1 =await user.update({first_name:users.first_name,last_name:users.la
 //         funds: 200000
 //     })
 
-}
+//}
 
 })
 
