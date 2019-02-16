@@ -1646,34 +1646,44 @@ app.post('/direct-buy-check',(req,res)=>{
 })
 
 app.post('/direct-buy',(req,res)=>{
-    try {
+   try{
         accessory.findOne({where: {accessory_id: req.body.accessory_id}}).then((result) => {
-                accessory.update({accessory_qty: result.dataValues.accessory_qty - req.body.quantity}).then(() => {
-
+                accessory.update({accessory_qty: result.dataValues.accessory_qty - req.body.quantity},{where:{accessory_id: req.body.accessory_id}}).then(() => {
+                console.log(result.dataValues.accessory_qty)
                     card_details.findOne({where: {bank_account_no: req.body.bank_account_no}}).then((bank_details) => {
-                        if (bank_details.result.funds < req.body.amount) {
+                        if (bank_details.dataValues.funds < req.body.amount) {
                             res.send('Insufficient Funds');
                             return false;
                         }
-                        card_details.update({funds: bank_details.result.funds - req.body.amount}, {where: {bank_account_no: req.body.bank_account_no}}).then(() => {
+                        card_details.update({funds: bank_details.dataValues.funds - req.body.amount}, {where: {bank_account_no: req.body.bank_account_no}}).then(() => {
                             card_details.findOne({where: {name: "Bank"}}).then((details) => {
-                                card_details.update({funds: details.dataValues.funds + req.body.amount}, {where: {name: "Bank"}}).then(() => {
 
 
-                                    card_details.update({funds: details.dataValues.funds - req.body.amount}, {where: {name: "Bank"}}).then(() => {
-                                        card_details.update({funds: details.dataValues.funds + req.body.amount}, {where: {name: "Developer"}}).then(() => {
-                                            res.send("Accessory Purchased")
-                                        })
+
+
+                                        card_details.findOne({where:{name:"Developer"}}).then((developer_details)=>{
+                                            console.log(developer_details.dataValues.funds);
+                                            card_details.update({funds: details.dataValues.funds - req.body.amount}, {where: {name: "Bank"}}).then(() => {
+
+                                                card_details.findOne({where: {name: "Bank"}}).then((details1) => {
+                                                card_details.update({funds: details1.dataValues.funds + req.body.amount}, {where: {name: "Bank"}}).then(() => {
+
+                                                    card_details.update({funds: developer_details.dataValues.funds + req.body.amount}, {where: {name: "Developer"}}).then(() => {
+                                                        res.send("Accessory Purchased")
+                                                        console.log('')
+                                                    })
+                                                })
                                     })
                                 })
                             })
+                        })
                         })
                     })
 
 
                 })
             }
-        ).catch(e => res.send(e))
+        ).catch(e => res.send(e.message))
     }
     catch(err)
     {
