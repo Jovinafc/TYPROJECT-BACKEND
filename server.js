@@ -1535,7 +1535,7 @@ app.post('/cartItems',async (req,res)=>{
     }
   //  cart_quantity = result[0].dataValues.quantity
 
-        accessory.findAll({where:{accessory_id:{[Op.in]:[accessory_id]}},include:[{model:cart_storage}]}).then((result1)=>{
+        accessory.findAll({where:{accessory_id:{[Op.in]:[accessory_id]}},include:[{model:cart_storage,where:{[Op.and]:[{user_id:req.body.user_id},{accessory_id:req.body.accessory_id}]}}]}).then((result1)=>{
           for(let i in result1)
           {
 
