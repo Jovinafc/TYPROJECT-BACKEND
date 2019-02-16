@@ -1112,19 +1112,19 @@ app.post('/filtered-vehicle-results',async (req,res)=>{
 app.post('/update-user-profile',async (req,res)=>{
 let users = req.body.users;
 const update1 =await user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
-    state:users.state,city:users.city,pincode:users.pincode,documents:clientURL
+    state:users.state,city:users.city,pincode:users.pincode,documents:clientURL,bank_account_no:users.bank_account_no
 },{where:
         {user_id:users.user_id}}).then((result)=>{
             res.send('User profile Updated')
 }).catch(e=>res.send(e))
 
-if(users.bank_account_no!==undefined) {
-    const update2 = await card_details.create({
-        name: users.first_name + "" + users.last_name,
-        bank_account_no: users.bank_account_no,
-        mobile_no: users.phone_number,
-        funds: 200000
-    })
+// if(users.bank_account_no!==undefined) {
+//     const update2 = await card_details.create({
+//         name: users.first_name + "" + users.last_name,
+//         bank_account_no: users.bank_account_no,
+//         mobile_no: users.phone_number,
+//         funds: 200000
+//     })
 
 }
 
