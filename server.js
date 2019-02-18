@@ -1608,13 +1608,14 @@ app.post('/checkout-check',async (req,res)=>{
     let price =[]
     let totalPrice=[];
     const test =await cart_storage.findAll({where:{user_id:req.body.user_id}}).then((result)=>{
-
+    let count =0;
         if(result.length===0)
         {
             res.send('No Items In Cart');
             return false;
         }
         for(let i in result) {
+            count++;
             quantity.push(result[i].dataValues.quantity)
 
             accessory.findOne({where:{accessory_id:result[i].dataValues.accessory_id}}).then((data)=>{
@@ -1635,7 +1636,7 @@ app.post('/checkout-check',async (req,res)=>{
                     return a+b;
                 }
                 console.log(total_sum)
-                res.send("Total Amount: "+total_sum)
+                res.send("Grand Amount: "+"No of Item(s): "+count+total_sum)
             },1000)
 
     })
