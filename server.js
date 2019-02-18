@@ -1636,7 +1636,10 @@ app.post('/checkout-check',async (req,res)=>{
                     return a+b;
                 }
                 console.log(total_sum)
-                res.send("Grand Amount: "+"No of Item(s): "+count+"   "+total_sum)
+                let sendDetails={
+                    count:count,grand_total:total_sum
+                }
+                res.send(sendDetails)
             },1000)
 
     })
