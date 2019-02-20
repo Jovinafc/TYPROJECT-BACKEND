@@ -1,2 +1,4 @@
 const transactions = require('../models').transaction;
-transactions.create({})
+transactions.create({
+
+})

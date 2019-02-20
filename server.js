@@ -28,6 +28,8 @@ const client = require('./models').client;
 const card_details = require('./models').card_details
 const accessory = require('./models').accessory
 const cart_storage = require('./models').cart_storage
+const rating = require('./models').rating
+const feedback = require('./models').feedback
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -1716,6 +1718,119 @@ app.post('/cancel-booking',(req,res)=>{
     )
 
 })
+
+//---------Rating ----
+app.post('/rating',(req,res)=>{
+    const Op = Sequelize.Op
+    rating.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((data)=>{
+        if(data!==null)
+        {
+            res.send('You have Already Rated this Vehicle');
+            return false;
+        }
+
+    rating.create({
+        user_id:req.body.user_id,
+        vehicle_id:req.body.vehicle_id,
+        vehicle_name:req.body.vehicle_name,
+        user_name:req.body.user_name,
+        rating_number:req.body.rating_number
+    }).then((result)=>{
+        res.send('Successfully Rated')
+    })
+    })
+    })
+
+app.post('/rating-for-vehicle',(req,res)=>{
+    let avg_rating=null;
+    let total_rating=[];
+    rating.findAll({where:{vehicle_id:req.body.vehicle_id}}).then((result)=>{
+           for(let i in result)
+           {
+               total_rating.push(result[i].dataValues.rating_number);
+           }
+           setTimeout(function(){
+              let count =total_rating.length;
+               let total_sum=  total_rating.reduce(add,0)
+               function add(a,b)
+               {
+                   return a+b;
+               }
+              avg_rating = total_sum/count
+               res.send('Average rating is:'+avg_rating.toFixed(2))
+           },100)
+    })
+})
+
+app.post('/delete-rating',(req,res)=>{
+    const Op = Sequelize.Op;
+    rating.destroy({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((result)=>{
+        console.log(result)
+        if(result===0)
+        {
+            res.send('Rating does not exist')
+            return false;
+        }
+
+        res.send('Rating Removed')
+    })
+})
+
+
+//--- Comments ---
+app.post('/create-comment',(req,res)=>{
+ const Op = Sequelize.Op;
+ feedback.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((data)=>{
+   if(data!==null)
+   {
+       res.send('You have already given a feedback');
+       return false;
+   }
+
+  feedback.create({
+      vehicle_id:req.body.vehicle_id,
+      vehicle_name: req.body.vehicle_name,
+      user_id: req.body.user_id,
+      user_name:req.body.user_name,
+      feedback_comment:req.body.feedback_comment
+  }).then((result)=>{
+      res.send('FeedBack Received')
+  })
+ })
+})
+
+app.post('/delete-comment',(req,res)=>{
+    feedback.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((data)=>{
+        if(data!==0)
+        {
+            res.send('Invalid Feedback');
+            return false;
+        }
+        feedback.destroy({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((result1)=>{
+        res.send('Comment Deleted')
+        })
+    })
+})
+
+app.post('/comments',(req,res)=>{
+    const Op = Sequelize.Op;
+    let comment_display =[];
+    feedback.findAll({where:{vehicle_id:req.body.vehicle_id},order:[['createdAt','DESC']]}).then((result)=>{
+        for(let i in result)
+        {
+
+            comment_display.push(result[i].dataValues)
+        }
+
+        setTimeout(function () {
+
+            res.send(comment_display)
+        },100)
+    })
+
+})
+
+
 //--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')

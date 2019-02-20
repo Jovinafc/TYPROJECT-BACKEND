@@ -17,7 +17,7 @@ const speakeasy = require('speakeasy');
 const messagebird = require('messagebird')('qI8MEqDZ9CXHedPy870iEVIcx');
 const otplib = require('otplib');
 const nodemailer = require("nodemailer");
-
+const url = require('url');
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -226,8 +226,34 @@ app.post('/math',(req,res)=>{
 
     sequelize.query('select * from ')
 })
+//--- maps ---
 
-// testing scheduling
+//------ Filter test
+app.get('/filter',(req,res)=>{
+    const Op = Sequelize.Op;
+    console.log(req.url)
+    let query=JSON.stringify(req.query);
+
+    let urlQuery = url.parse(req.url,true).query;
+    let display =[];
+    vehicle.findAll({where:{[Op.or]:urlQuery}}).then((result)=>{
+        for(let i in result)
+        {
+            display.push(result[i].dataValues)
+        }
+    })
+    console.log(display)
+    setTimeout(function () {
+        res.send(display)
+    },100)
+
+})
+
+
+
+
+/* testing scheduling*/
+
 app.post('/schedule-testing',(req,res)=>{
     let date= new Date(req.body.date);
  //let test =[1,2,3];
