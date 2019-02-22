@@ -693,17 +693,17 @@ app.post('/buy-now',(req,res)=> {
                        card_details.update({funds:client_details.dataValues.funds - amount}).then(()=>{
 
                         card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
-                            card_details.update({funds:details4.dataValues.funds + amount,where:{name:"Bank"}}).then(()=>{
+                            card_details.update({funds:details4.dataValues.funds + amount},{where:{name:"Bank"}}).then(()=>{
             
 
 
                        
                     card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
-                       card_details.update({funds:details4.dataValues.funds - amount,where:{name:"Bank"}}).then(()=>{
+                       card_details.update({funds:details4.dataValues.funds - amount},{where:{name:"Bank"}}).then(()=>{
 
 
                     card_details.findOne({where:{bank_account_no:owner_account_no}}).then((owner_details)=>{
-                             card_details.update({funds:amount+owner_details.dataValues.funds}).then((result1)=>{
+                             card_details.update({funds:amount+owner_details.dataValues.funds},{where:{bank_account_no:owner_account_no}}).then((result1)=>{
 
                            
                         create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,"Bank",owner_name,"SOLD")
