@@ -837,7 +837,7 @@ app.post('/rent-now',async (req,res)=>{
                                                                 card_details.update({funds: details1.dataValues.funds + amount - 100}).then(() => {
 
 
-                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, transaction_type, "Bank", owner_details[0].name, amount, "RENTED")
+                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, transaction_type, "Bank", owner_details[0].name, (amount-100), "In Transaction")
 
                                                                     // developer being given his share
                                                                     card_details.findOne({where: {name: "Bank"}}).then((bank_details2) => {
@@ -845,6 +845,8 @@ app.post('/rent-now',async (req,res)=>{
 
 
                                                                             card_details.update({funds: developer_details.dataValues.funds + 100}).then(() => {
+                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, transaction_type, "Bank", "Developer", amount, "RENTED")
+
                                                                                 console.log("Payment Settled");
 
                                                                             })
