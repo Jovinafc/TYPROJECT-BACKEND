@@ -690,7 +690,7 @@ app.post('/buy-now',(req,res)=> {
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
                    
                    card_details.findOne({where:{bank_account_no:client_account_no}}).then((client_details)=>{
-                       card_details.update({funds:client_details.dataValues.funds - amount}).then(()=>{
+                       card_details.update({funds:client_details.dataValues.funds - amount},{where:{bank_account_no:client_account_no}}).then(()=>{
 
                         card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
                             card_details.update({funds:details4.dataValues.funds + amount},{where:{name:"Bank"}}).then(()=>{
