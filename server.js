@@ -34,7 +34,8 @@ const feedback = require('./models').feedback
 const {authenticate} = require('./middleware/authenticate');
 
 //----methods ---
-const transaction_create = require('./methods/transaction-creation')
+const {create_transaction} = require('./methods/transaction-creation')
+const {create_accessory}= require('./methods/accessory_create')
 
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({
@@ -658,9 +659,18 @@ catch(error){
 app.post('/buy-now',(req,res)=> {
     let vehicles = req.body.vehicles
     let amount = req.body.amount;
+    let owner_id=null;
+    let owner_name='';
+    let vehicle_type='';
     let client_account_no = vehicles.client_bank_account;
     let owner_account_no = vehicles.owner_bankaccount;
     user.findOne({where:{user_id:vehicles.client_id}}).then((result)=>{
+       vehicle.findOne({where:{vehicle_id:vehicle.vehicle_id}}).then((owner_details)=>{
+           owner_id= owner_details.dataValues.user_id
+            vehicle_type= owner_details.dataValues.vehicle_type;
+           owner_name = owner_details.dataValues.name
+       })
+
         client.create({
             vehicle_id:vehicles.vehicle_id,
             user_id:vehicles.client_id,
@@ -673,12 +683,7 @@ app.post('/buy-now',(req,res)=> {
             DOB:result.dataValues.DOB,
             documents:clientURL
         }).then((clientResult)=>{
-            transaction.create({
-                client_id:clientResult.dataValues.client_id,
-                vehicle_id:vehicles.vehicle_id,
-                date:vehicles.date,
-                type:vehicles.type
-            }).then((transactionResult)=>{
+                create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,clientResult.dataValues.name,"Bank","In Transaction")
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
                    card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
                        card_details.update({funds:details4.dataValues.funds - amount}).then(()=>{
@@ -686,9 +691,11 @@ app.post('/buy-now',(req,res)=> {
 
                     card_details.findOne({where:{bank_account_no:owner_account_no}}).then((owner_details)=>{
                              card_details.update({funds:amount+owner_details.dataValues.funds})
-                         })
+                        create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,"Bank",owner_name,"SOLD")
+
+                    })
                        })
-                   })
+
                      }).catch((e)=>res.status(403).send(e))
                  }).catch((e)=>res.status(403).send(e))
 

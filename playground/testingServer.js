@@ -33,6 +33,11 @@ const user = require('./../models').user;
 const rent = require('./../models').rent
 const owner = require('./../models').owner
 const client = require('./../models').client
+
+
+const {create_transaction} = require('./../methods/transaction-creation')
+
+
 //-----------Cloudinary
 cloudinary.config({
     cloud_name: 'beast0013',
@@ -287,6 +292,11 @@ app.post('/schedule-testing',(req,res)=>{
 
 
 
+})
+//----- testing trasaction
+app.post('/transaction',(req,res)=>{
+create_transaction(1,1,1,"Two-Wheelers","Bank","Test","Sold")
+    res.send('Sold')
 })
 
 
