@@ -12,7 +12,11 @@ module.exports = {
         type: Sequelize.BIGINT
       },
       owner_id: {
-        type: Sequelize.BIGINT
+        type: Sequelize.BIGINT,
+          references:{
+              model:"owner",
+              key:"owner_id"
+          }
       },
       vehicle_id: {
         type: Sequelize.BIGINT

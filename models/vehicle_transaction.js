@@ -16,7 +16,6 @@ module.exports = (sequelize, DataTypes) => {
     status: DataTypes.STRING
   }, {});
   vehicle_transaction.associate = function(models) {
-    // associations can be defined here
   };
   return vehicle_transaction;
 };

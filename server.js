@@ -1899,10 +1899,39 @@ app.post('/comments',(req,res)=>{
 })
 
 
-// app.post('/vehicle-history',(req,res)=>{
-//     const Op = Sequelize.Op;
-// accessory_transaction.findAll({where:{[Op.and]:[{req.body.vehicle_id},{}]}})
-// })
+app.post('/remove-vehicle',(req,res)=>{
+
+     const Op = Sequelize.Op
+    vehicle.update({status:"UNAVAILABLE"},{where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id},{status:"AVAILABLE"}]}}).then((result)=>{
+        console.log(result);
+        if(result[0]===0)
+        {
+            res.send('Vehicle Does Not Exist')
+            return false;
+        }
+        res.send('Vehicle No Longer Available')
+    })
+
+})
+
+
+app.post('/vehicle-history',(req,res)=>{
+    const Op = Sequelize.Op;
+    let details=[];
+    vehicle_transaction.findAll({where:{[Op.and]:[{vehicle_id:req.body.vehicle_id},{status:{[Op.ne]:["In Transaction"]}}]}}).then((result)=>{
+    for(let i in result)
+    {
+        details.push(result[i].dataValues)
+
+    }
+    setTimeout(function(){
+        res.send(details)
+    },100)
+
+
+
+    })
+})
 
 
 //--------------
