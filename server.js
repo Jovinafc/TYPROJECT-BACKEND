@@ -690,7 +690,7 @@ app.post('/buy-now',(req,res)=> {
             DOB:result.dataValues.DOB,
             documents:clientURL
         }).then((clientResult)=>{
-                create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,clientResult.dataValues.name,"Bank","In Transaction")
+                create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,clientResult.dataValues.name,"Bank",amount,"In Transaction")
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
                    
                    card_details.findOne({where:{bank_account_no:client_account_no}}).then((client_details)=>{
@@ -715,7 +715,7 @@ app.post('/buy-now',(req,res)=> {
                              card_details.update({funds:amount+owner_details.dataValues.funds},{where:{bank_account_no:owner_account_no}}).then((result1)=>{
 
                            console.log(owner_name)
-                        create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,"Bank",owner_name,"SOLD")
+                        create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,"Bank",owner_name,amount,"SOLD")
 
                         res.send('Vehicle Sold')
                     })
@@ -745,13 +745,15 @@ app.post('/rent-now',async (req,res)=>{
     let user_client_id = req.body.user_client_id;
     let owner_bank_account= req.body.owner_bank_account;
     let client_bank_account= req.body.client_bank_account
-    let amount = req.body.amount;
-    let deposit = req.body.deposit;
+    let amount = parseInt(req.body.amount);
+    let deposit = parseIt(req.body.deposit);
     let totalAmount = amount+deposit;
-
+    let transaction_type="";
     const vehicle1=await vehicle.findOne({where: {vehicle_id: vehicle_id}}).then((result) => {
         user_id = result.dataValues.user_id;
+        transaction_type = result.dataValues.vehicle_type
         console.log(user_id)
+
     });
     const vehicle2=  await  owner.findOne({where: {user_id: user_id}}).then((result1) => {
         owner_details.push(result1.dataValues)
@@ -785,55 +787,89 @@ app.post('/rent-now',async (req,res)=>{
         start_date:start,
         end_date:end
     }).then((result4)=>{
-                    vehicle.update({status:'RENTED'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
-            let date= new Date(end);
-            let year = date.getFullYear();
-            let month = date.getMonth();
-            let day = date.getDate();
-            let hours = date.getHours();
-            let minutes = date.getMinutes();
-            var date1 = new Date(year, month, day, hours, minutes, 0);
-            res.send('Vehicle Rented');
-            var j = schedule.scheduleJob(vehicle_id,date1, function(){
-                let owner_funds=null;
-                let client_funds=null;
-                vehicle.update({status:'AVAILABLE'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=>{
-                  card_details.findOne({where:{bank_account_no: client_bank_account}}).then((details)=>{
-                      client_funds= details.dataValues.funds;
-                  card_details.findOne({where:{bank_account_no:owner_bank_account}}).then((details1)=>{
-                      owner_funds= details1.dataValues.funds;
-                  card_details.findOne({where:{name:"Developer"}}).then((developer_details)=>{
-                      card_details.findOne({where:{name:"Bank"}}).then((bank_details)=>{
-                          //deducting funds from bank
-                          card_details.update({funds:bank_details.dataValues.funds - totalAmount}).then(()=>{
-                              //clients deposit being return
-                              card_details.update({funds:details.dataValues.funds + deposit}).then(()=>{
-                                  //owner being given his share
-                                  card_details.update({funds:details1.dataValues.funds + amount -100}).then(()=>{
-                                    // developer being given his share
-                                      card_details.update({funds:developer_details.dataValues.funds + 100}).then(()=>{
-                                          console.log("Payment Settled");
-                                      })
-                                  })
-                              })
-
-                          })
+                    vehicle.update({status:'RENTED'},{where:{vehicle_id:owner_details[0].vehicle_id}}).then(()=> {
+                        let date = new Date(end);
+                        let year = date.getFullYear();
+                        let month = date.getMonth();
+                        let day = date.getDate();
+                        let hours = date.getHours();
+                        let minutes = date.getMinutes();
+                        var date1 = new Date(year, month, day, hours, minutes, 0);
+                        res.send('Vehicle Rented');
+                        //from client to bank
+                        create_transaction(client_details[0].client_id, owner_details[0].owner_id, transaction_type, client_details[0].name, "Bank", totalAmount, "In Transaction")
+                        card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
+                            let client_funds = details.dataValues.funds;
+                            card_details.findOne({where: {name: "Bank"}}).then((bank_details) => {
+                                card_details.update({funds: client_funds - totalAmount}, {where: {bank_account_no: client_bank_account}}).then(() => {
+                                    card_details.update({funds: bank_details.dataValues.funds + totalAmount}, {where: {name: "Bank"}}).then(() => {
+                                        console.log('Transfer from Client to Bank')
+                                    })
+                                })
+                            })
+                        })
 
 
-                      })
+                        var j = schedule.scheduleJob(vehicle_id, date1, function () {
+                            let owner_funds = null;
+                            let client_funds = null;
+                            vehicle.update({status: 'AVAILABLE'}, {where: {vehicle_id: owner_details[0].vehicle_id}}).then(() => {
+                                card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
 
-                  })
+                                    card_details.findOne({where: {bank_account_no: owner_bank_account}}).then((details1) => {
+                                        owner_funds = details1.dataValues.funds;
+                                        card_details.findOne({where: {name: "Developer"}}).then((developer_details) => {
+                                            card_details.findOne({where: {name: "Bank"}}).then((bank_details) => {
+                                                //deducting funds from bank
 
-                  })
-                  })
+
+                                                card_details.update({funds: bank_details.dataValues.funds - deposit}).then(() => {
+                                                    //clients deposit being return
+                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, transaction_type, "Bank", client_details[0].name, deposit, "In Transaction")
 
 
+                                                    card_details.update({funds: details.dataValues.funds + deposit}).then(() => {
 
-        })
-            });
-        })
 
-    })
+                                                        card_details.findOne({where: {name: "Bank"}}).then((bank_details1) => {
+                                                            card_details.update({funds: bank_details1.dataValues.funds - amount + 100}).then(() => {
+
+                                                                card_details.update({funds: details1.dataValues.funds + amount - 100}).then(() => {
+
+
+                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, transaction_type, "Bank", owner_details[0].name, amount, "RENTED")
+
+                                                                    // developer being given his share
+                                                                    card_details.findOne({where: {name: "Bank"}}).then((bank_details2) => {
+                                                                        card_details.update({funds: bank_details2.dataValues.funds - 100}).then(() => {
+
+
+                                                                            card_details.update({funds: developer_details.dataValues.funds + 100}).then(() => {
+                                                                                console.log("Payment Settled");
+
+                                                                            })
+
+                                                                        })
+
+                                                                    })
+
+                                                                })
+                                                            })
+
+                                                        })
+
+                                                    })
+                                                })
+                                            })
+
+                                            })
+                                        });
+                                    })
+
+                                })
+                            });
+                        })
+                    })
 
 
 
