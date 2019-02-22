@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
 
   }, {});
   owner.associate = function(models) {
-    // associations can be defined here
+      owner.hasMany(models.vehicle_transaction,{foreignKey:"owner_id"})
   };
   return owner;
 };

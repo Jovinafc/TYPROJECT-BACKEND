@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
     user.hasOne(models.rating,{foreignKey: "user_id"})
     user.hasOne(models.owner,{foreignKey:"user_id"})
     user.hasOne(models.client,{foreignKey:"user_id"})
+      user.hasMany(models.accessory_transaction,{foreignKey:'accessory_id'})
   };
   return user;
 };
