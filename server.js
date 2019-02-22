@@ -951,7 +951,7 @@ app.post('/fetch-specific-vehicle/:id',(req,res)=>{
     let sendDetails =[]
     let user_details={};
 
-    vehicle.findOne({where:{vehicle_id:vehicle_id,user_id:{[Op.ne]:user_id}}}).then((result)=>{
+    vehicle.findOne({where:{vehicle_id:vehicle_id,user_id:{[Op.ne]:user_id}},include:[{model:owner,where:{[Op.and]:[{vehicle_id:vehicle_id}]}}]}).then((result)=>{
 
         sendDetails.push(result.dataValues);
         user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
