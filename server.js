@@ -660,7 +660,8 @@ catch(error){
 //------ Buying Logic ----
 app.post('/buy-now',(req,res)=> {
     let vehicles = req.body.vehicles
-    let amount = req.body.amount;
+    let amount = parseInt(vehicles.amount);
+    console.log(amount);
     let owner_id=null;
     let owner_name='';
     let vehicle_type='';
@@ -670,9 +671,12 @@ app.post('/buy-now',(req,res)=> {
        vehicle.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details)=>{
            owner_id= owner_details.dataValues.user_id
            console.log(owner_id);
-            vehicle_type= owner_details.dataValues.vehicle_type;
-           owner_name = owner_details.dataValues.name
-       
+        user.findOne({where:{user_id:owner_id}}).then((owners1)=>{
+
+        console.log(owners1.dataValues)
+           vehicle_type= owner_details.dataValues.vehicle_type;
+           owner_name = owners1.dataValues.first_name+ " "+ owners1.dataValues.last_name
+
 
         client.create({
             vehicle_id:vehicles.vehicle_id,
@@ -690,26 +694,32 @@ app.post('/buy-now',(req,res)=> {
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
                    
                    card_details.findOne({where:{bank_account_no:client_account_no}}).then((client_details)=>{
-                       card_details.update({funds:client_details.dataValues.funds - amount},{where:{bank_account_no:client_account_no}}).then(()=>{
-
+                       console.log(client_details.dataValues.funds);
+                       console.log(amount);
+                       console.log(client_details.dataValues.funds + amount);
+                       card_details.update({funds:parseInt(client_details.dataValues.funds) - amount},{where:{bank_account_no:client_account_no}}).then(()=>{
+                       
+                        console.log('line 695');
                         card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
                             card_details.update({funds:details4.dataValues.funds + amount},{where:{name:"Bank"}}).then(()=>{
-            
+                                console.log('line 698');        
 
 
                        
-                    card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
-                       card_details.update({funds:details4.dataValues.funds - amount},{where:{name:"Bank"}}).then(()=>{
+                    card_details.findOne({where:{name:"Bank"}}).then((details5)=>{
+                       card_details.update({funds:details5.dataValues.funds - amount},{where:{name:"Bank"}}).then(()=>{
 
 
                     card_details.findOne({where:{bank_account_no:owner_account_no}}).then((owner_details)=>{
+                        console.log(owner_details.dataValues.funds)
                              card_details.update({funds:amount+owner_details.dataValues.funds},{where:{bank_account_no:owner_account_no}}).then((result1)=>{
 
-                           
+                           console.log(owner_name)
                         create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,"Bank",owner_name,"SOLD")
 
                         res.send('Vehicle Sold')
                     })
+                })
                     })
                 })
                 })
