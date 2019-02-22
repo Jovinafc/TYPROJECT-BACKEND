@@ -30,6 +30,8 @@ const accessory = require('./models').accessory
 const cart_storage = require('./models').cart_storage
 const rating = require('./models').rating
 const feedback = require('./models').feedback
+const accessory_transaction = require('./models').accessory_transaction
+const vehicle_transaction = require('./models').vehicle_transaction
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -663,13 +665,14 @@ app.post('/buy-now',(req,res)=> {
     let owner_name='';
     let vehicle_type='';
     let client_account_no = vehicles.client_bank_account;
-    let owner_account_no = vehicles.owner_bankaccount;
+    let owner_account_no = vehicles.owner_bank_account;
     user.findOne({where:{user_id:vehicles.client_id}}).then((result)=>{
-       vehicle.findOne({where:{vehicle_id:vehicle.vehicle_id}}).then((owner_details)=>{
+       vehicle.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details)=>{
            owner_id= owner_details.dataValues.user_id
+           console.log(owner_id);
             vehicle_type= owner_details.dataValues.vehicle_type;
            owner_name = owner_details.dataValues.name
-       })
+       
 
         client.create({
             vehicle_id:vehicles.vehicle_id,
@@ -685,26 +688,48 @@ app.post('/buy-now',(req,res)=> {
         }).then((clientResult)=>{
                 create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,clientResult.dataValues.name,"Bank","In Transaction")
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
-                   card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
-                       card_details.update({funds:details4.dataValues.funds - amount}).then(()=>{
+                   
+                   card_details.findOne({where:{bank_account_no:client_account_no}}.then((client_details)=>{
+                       card_details.update({funds:client_details.dataValues.funds - amount}).then(()=>{
+
+                        card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
+                            card_details.update({funds:details4.dataValues.funds + amount,where:{name:"Bank"}}).then(()=>{
+            
+
+
+                       
+                    card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
+                       card_details.update({funds:details4.dataValues.funds - amount,where:{name:"Bank"}}).then(()=>{
 
 
                     card_details.findOne({where:{bank_account_no:owner_account_no}}).then((owner_details)=>{
-                             card_details.update({funds:amount+owner_details.dataValues.funds})
+                             card_details.update({funds:amount+owner_details.dataValues.funds}).then((result1)=>{
+
+                           
                         create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,"Bank",owner_name,"SOLD")
 
+                        res.send('Vehicle Sold')
+                    })
+                    })
+                })
+                })
                     })
                        })
-
-                     }).catch((e)=>res.status(403).send(e))
-                 }).catch((e)=>res.status(403).send(e))
-
-
-                    res.send('Vehicle Sold')
-
+                
+                
                 })
             })
+        
+        
+        })
+                     })
+                 })
 
+                
+
+                   
+
+             
 
 
 })
@@ -1835,6 +1860,12 @@ app.post('/comments',(req,res)=>{
     })
 
 })
+
+
+// app.post('/vehicle-history',(req,res)=>{
+//     const Op = Sequelize.Op;
+// accessory_transaction.findAll({where:{[Op.and]:[{req.body.vehicle_id},{}]}})
+// })
 
 
 //--------------
