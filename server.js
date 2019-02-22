@@ -689,7 +689,7 @@ app.post('/buy-now',(req,res)=> {
                 create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,clientResult.dataValues.name,"Bank","In Transaction")
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
                    
-                   card_details.findOne({where:{bank_account_no:client_account_no}}.then((client_details)=>{
+                   card_details.findOne({where:{bank_account_no:client_account_no}}).then((client_details)=>{
                        card_details.update({funds:client_details.dataValues.funds - amount}).then(()=>{
 
                         card_details.findOne({where:{name:"Bank"}}).then((details4)=>{
@@ -715,23 +715,12 @@ app.post('/buy-now',(req,res)=> {
                 })
                     })
                        })
-                
-                
                 })
             })
-        
-        
         })
-                     })
-                 })
-
-                
-
-                   
-
-             
-
-
+       })
+   })
+})
 })
 //---------- Renting Logic
 app.post('/rent-now',async (req,res)=>{
