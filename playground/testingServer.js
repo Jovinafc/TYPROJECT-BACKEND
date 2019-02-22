@@ -231,9 +231,8 @@ app.post('/math',(req,res)=>{
 //------ Filter test
 app.get('/filter',(req,res)=>{
     const Op = Sequelize.Op;
-    console.log(req.url)
-    let query=JSON.stringify(req.query);
-
+    console.log(req.query.vehicle_id.split(','));
+    let query=JSON.stringify(req.query.vehicle_id.split(','));
     let urlQuery = url.parse(req.url,true).query;
     let display =[];
     vehicle.findAll({where:{[Op.or]:urlQuery}}).then((result)=>{

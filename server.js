@@ -1426,7 +1426,7 @@ app.post('/updateCart',(req,res)=>{
         }
         else
         {
-            res.send("OUT OF STOCK"+{count:fetched_quantity})
+            res.send("OUT OF STOCK "+fetched_quantity)
         }
 
 
@@ -1488,15 +1488,11 @@ app.post('/removeCart',(req,res)=>{
        else {
            cart_storage.destroy({where:{[Op.and]:[{user_id:req.body.user_id,accessory_id:req.body.accessory_id}]}}).then((result1) => {
 
-               accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((details_cart)=>{
-                   console.log(details_cart.dataValues.accessory_qty + req.body.quantity)
-                accessory.update({accessory_qty: details_cart.dataValues.accessory_qty + req.body.quantity}, {where: {accessory_id: req.body.accessory_id}}).then(() => {
-
                     res.send('Item Removed')
 
 
-                })
-               })
+
+
             }).catch(e => res.send(e))
 
         }

@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     documents: DataTypes.STRING
   });
   client.associate = function(models) {
-    client.hasOne(models.transaction,{foreignKey:"client_id"})
+    client.hasOne(models.vehicle_transactio,{foreignKey:"client_id"})
 
   };
   return client;
