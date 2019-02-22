@@ -33,6 +33,9 @@ const feedback = require('./models').feedback
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
+//----methods ---
+const transaction_create = require('./methods/transaction-creation')
+
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({
     extended: false
