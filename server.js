@@ -795,6 +795,7 @@ app.post('/rent-now',async (req,res)=>{
                         let day = date.getDate();
                         let hours = date.getHours();
                         let minutes = date.getMinutes();
+                        let jobName = owner_details[0].name+" "+vehicle_id;
                         var date1 = new Date(year, month, day, hours, minutes, 0);
                         res.send('Vehicle Rented');
                         //from client to bank
@@ -808,7 +809,7 @@ app.post('/rent-now',async (req,res)=>{
                                  
                               console.log(date1)              
 
-                        var j = schedule.scheduleJob(vehicle_id, date1, function () {
+                        var j = schedule.scheduleJob(jobName, date1, function () {
                            console.log('End Date Initiated')
                             vehicle.update({status: 'AVAILABLE'}, {where: {vehicle_id: vehicle_id}}).then(() => {
                                 card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
@@ -1062,126 +1063,126 @@ app.post('/delete-account',async (req,res)=>{
 
 
 //-------- filtering data based on checkbox ---------
-app.post('/filtered-vehicle-results',async (req,res)=>{
-
-    let filteredResult =[]
-    let condition = req.body
-    console.log(condition)
-
-
-    for (let filterType in condition) {
-        let filter = req.body.filterOption
-        let value = req.body.filterValue
-
-        console.log(filter + ' ' + value)
-
-
-
-        if (filter === 'vehicle_type') {
-            const filteringResults = await vehicle.findAll({where: {vehicle_type: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-
-
-        }
-
-        else if (filter === 'brand') {
-            const filteringResults = await vehicle.findAll({where: {brand: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-        }
-
-        else if (filter === 'model') {
-            const filteringResults = await vehicle.findAll({where: {model: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-        }
-        else if (filter === 'fuel_type') {
-            const filteringResults = await vehicle.findAll({where: {fuel_type: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-        }
-        else if (filter === 'year') {
-            const filteringResults = await vehicle.findAll({where: {year: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-        }
-        else if (filter === 'registration_state') {
-            const filteringResults = await vehicle.findAll({where: {registration_state: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-        }
-        else if (filter === 'km_driven') {
-            const filteringResults = await vehicle.findAll({where: {km_driven: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-        }
-        else if (filter === 'price_per_day') {
-            const filteringResults = await vehicle.findAll({where: {price_per_day: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-
-        }
-
-
-        else if (filter === 'price') {
-            const filteringResults = await vehicle.findAll({where: {price: value}}).then((result) => {
-                for (let vehicle in result) {
-                    filteredResult.push(result[vehicle].dataValues)
-
-                }
-
-
-            }).catch(e => res.send(e))
-        }
-
-
-    }
-
-    res.send(filteredResult)
-    //console.log(filteredResult)
-
-})
+// app.post('/filtered-vehicle-results',async (req,res)=>{
+//
+//     let filteredResult =[]
+//     let condition = req.body
+//     console.log(condition)
+//
+//
+//     for (let filterType in condition) {
+//         let filter = req.body.filterOption
+//         let value = req.body.filterValue
+//
+//         console.log(filter + ' ' + value)
+//
+//
+//
+//         if (filter === 'vehicle_type') {
+//             const filteringResults = await vehicle.findAll({where: {vehicle_type: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//
+//
+//         }
+//
+//         else if (filter === 'brand') {
+//             const filteringResults = await vehicle.findAll({where: {brand: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//         }
+//
+//         else if (filter === 'model') {
+//             const filteringResults = await vehicle.findAll({where: {model: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//         }
+//         else if (filter === 'fuel_type') {
+//             const filteringResults = await vehicle.findAll({where: {fuel_type: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//         }
+//         else if (filter === 'year') {
+//             const filteringResults = await vehicle.findAll({where: {year: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//         }
+//         else if (filter === 'registration_state') {
+//             const filteringResults = await vehicle.findAll({where: {registration_state: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//         }
+//         else if (filter === 'km_driven') {
+//             const filteringResults = await vehicle.findAll({where: {km_driven: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//         }
+//         else if (filter === 'price_per_day') {
+//             const filteringResults = await vehicle.findAll({where: {price_per_day: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//
+//         }
+//
+//
+//         else if (filter === 'price') {
+//             const filteringResults = await vehicle.findAll({where: {price: value}}).then((result) => {
+//                 for (let vehicle in result) {
+//                     filteredResult.push(result[vehicle].dataValues)
+//
+//                 }
+//
+//
+//             }).catch(e => res.send(e))
+//         }
+//
+//
+//     }
+//
+//     res.send(filteredResult)
+//     //console.log(filteredResult)
+//
+// })
 
 
 
@@ -1937,6 +1938,7 @@ app.post('/vehicle-history',(req,res)=>{
     })
 })
 
+//--- Filter ---
 
 //--------------
 app.listen(3001,()=>{

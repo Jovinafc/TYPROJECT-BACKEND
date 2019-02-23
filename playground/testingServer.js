@@ -234,18 +234,20 @@ app.post('/math',(req,res)=>{
 //--- maps ---
 
 //------ Filter test
+
 app.get('/filter',(req,res)=>{
     const Op = Sequelize.Op;
     console.log(req.query.vehicle_id.split(','));
+    console.log(req.query.user_id.split(','))
     // let query=JSON.stringify(req.query.vehicle_id.split(','));
-    let urlQuery = url.parse(req.url,true).query;
+    // let urlQuery = url.parse(req.url,true).query;
     let display =[];
-    vehicle.findAll({where:{[Op.or]:urlQuery}}).then((result)=>{
-        for(let i in result)
-        {
-            display.push(result[i].dataValues)
-        }
-    })
+    // vehicle.findAll({where:{[Op.or]:urlQuery}}).then((result)=>{
+    //     for(let i in result)
+    //     {
+    //         display.push(result[i].dataValues)
+    //     }
+    // })
     console.log(display)
     setTimeout(function () {
         res.send(display)
@@ -278,9 +280,13 @@ app.post('/schedule-testing',(req,res)=>{
           if(req.body.type==="Job") {
               var j =
                   schedule.scheduleJob(playstuff,date1, function () {
-                      console.log(`${req.body.name}`);
+                      console.log('change made')
+                      vehicle.update({status:"RENTED"},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
+
+                      })
+
                   })
-              res.send('Task Initiated '+date1);
+              res.send('Task Initiated '+date1)
           }
           else if(req.body.type==="Cancel")
           {
