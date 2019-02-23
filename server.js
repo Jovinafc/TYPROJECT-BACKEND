@@ -1783,7 +1783,8 @@ app.post('/checkout',async (req,res)=>{
 
 //-----Cancel a Booking ---
 app.post('/cancel-booking',(req,res)=>{
-    let my_job = schedule.scheduledJobs[req.body.vehicle_id]
+    let jobName = req.body.owner_name+" "+req.body.vehicle_id
+    let my_job = schedule.scheduledJobs[jobName]
     my_job.cancel();
     vehicle.update({status:"AVAILABLE"},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
         res.send("Booking Cancelled");
