@@ -1921,7 +1921,7 @@ app.post('/remove-vehicle',(req,res)=>{
 app.post('/vehicle-history',(req,res)=>{
     const Op = Sequelize.Op;
     let details=[];
-    vehicle_transaction.findAll({where:{[Op.and]:[{vehicle_id:req.body.vehicle_id},{status:{[Op.ne]:["In Transaction"]}}]}}).then((result)=>{
+    vehicle_transaction.findAll({where:{[Op.and]:[{vehicle_id:req.body.vehicle_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{[Op.and]:[{user_id:req.body.user_id}]}},{model:vehicle,where:{[Op.and]:[{user_id:req.body.user_id}]}}]}).then((result)=>{
     for(let i in result)
     {
         details.push(result[i].dataValues)
