@@ -661,6 +661,7 @@ catch(error){
 app.post('/buy-now',(req,res)=> {
     let vehicles = req.body.vehicles
     let amount = parseInt(vehicles.amount);
+    let user_id = vehicles.user_id;
     console.log(amount);
     let owner_id=null;
     let owner_name='';
@@ -690,7 +691,7 @@ app.post('/buy-now',(req,res)=> {
             DOB:result.dataValues.DOB,
             documents:clientURL
         }).then((clientResult)=>{
-                create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,clientResult.dataValues.name,"Bank",amount,"In Transaction")
+                create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,user_id,vehicle_type,clientResult.dataValues.name,"Bank",amount,"In Transaction")
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
                    
                    card_details.findOne({where:{bank_account_no:client_account_no}}).then((client_details)=>{
@@ -715,7 +716,7 @@ app.post('/buy-now',(req,res)=> {
                              card_details.update({funds:amount+owner_details.dataValues.funds},{where:{bank_account_no:owner_account_no}}).then((result1)=>{
 
                            console.log(owner_name)
-                        create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,vehicle_type,"Bank",owner_name,amount,"SOLD")
+                        create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,user_id,vehicle_type,"Bank",owner_name,amount,"SOLD")
 
                         res.send('Vehicle Sold')
                     })
@@ -1921,7 +1922,7 @@ app.post('/remove-vehicle',(req,res)=>{
 app.post('/vehicle-history',(req,res)=>{
     const Op = Sequelize.Op;
     let details=[];
-    vehicle_transaction.findAll({where:{[Op.and]:[{vehicle_id:req.body.vehicle_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:req.body.user_id}},{model:vehicle,where:{user_id:req.body.user_id}}]}).then((result)=>{
+    vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner},{model:vehicle}]}).then((result)=>{
     for(let i in result)
     {
         details.push(result[i].dataValues)
