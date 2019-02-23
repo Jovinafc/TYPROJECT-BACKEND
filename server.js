@@ -769,7 +769,7 @@ app.post('/rent-now',async (req,res)=>{
     const vehicle4= await client.create({
         vehicle_id:owner_details[0].vehicle_id,
         user_id:user_client_id,
-        name:user_details[0].first_name,
+        name:user_details[0].first_name+" "+user_details[0].last_name,
         address:user_details[0].address,
         city:user_details[0].city,
         pincode:user_details[0].pincode,
@@ -799,7 +799,7 @@ app.post('/rent-now',async (req,res)=>{
                         var date1 = new Date(year, month, day, hours, minutes, 0);
                         res.send('Vehicle Rented');
                         //from client to bank
-                        create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id, transaction_type, client_details[0].name, "Bank", totalAmount, "In Transaction")
+                        create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_id, transaction_type, client_details[0].name, "Bank", totalAmount, "In Transaction")
                         card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
                             let client_funds = details.dataValues.funds;
                             card_details.findOne({where: {name: "Bank"}}).then((bank_details) => {
@@ -823,7 +823,7 @@ app.post('/rent-now',async (req,res)=>{
 
                                                 card_details.update({funds: bank_details.dataValues.funds - deposit}).then(() => {
                                                     //clients deposit being return
-                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id, transaction_type, "Bank", client_details[0].name, deposit, "In Transaction")
+                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_id, transaction_type, "Bank", client_details[0].name, deposit, "In Transaction")
 
 
                                                     card_details.update({funds: details.dataValues.funds + deposit}).then(() => {
@@ -835,7 +835,7 @@ app.post('/rent-now',async (req,res)=>{
                                                                 card_details.update({funds: details1.dataValues.funds + amount - 100}).then(() => {
 
 
-                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id, transaction_type, "Bank", owner_details[0].name, (amount-100), "In Transaction")
+                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id, user_id,transaction_type, "Bank", owner_details[0].name, (amount-100), "In Transaction")
 
                                                                     // developer being given his share
                                                                     card_details.findOne({where: {name: "Bank"}}).then((bank_details2) => {
@@ -843,7 +843,7 @@ app.post('/rent-now',async (req,res)=>{
 
 
                                                                             card_details.update({funds: developer_details.dataValues.funds + 100}).then(() => {
-                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id,transaction_type, "Bank", "Developer", amount, "RENTED")
+                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id,user_id,transaction_type, "Bank", "Developer", amount, "RENTED")
 
                                                                                 console.log("Payment Settled");
 
