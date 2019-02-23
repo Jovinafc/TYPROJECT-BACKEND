@@ -14,7 +14,7 @@ module.exports = {
       owner_id: {
         type: Sequelize.BIGINT,
           references:{
-              model:"owner",
+              model:"owners",
               key:"owner_id"
           }
       },
