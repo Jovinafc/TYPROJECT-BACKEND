@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     transaction_type: DataTypes.STRING,
     from: DataTypes.STRING,
     to: DataTypes.STRING,
+      amount:DataTypes.DOUBLE,
     status: DataTypes.STRING
   }, {});
   vehicle_transaction.associate = function(models) {

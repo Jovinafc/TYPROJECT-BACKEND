@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
     accessory_id: DataTypes.BIGINT,
     from: DataTypes.STRING,
     to: DataTypes.STRING,
+    amount:DataTypes.DOUBLE,
     status: DataTypes.STRING
   }, {});
   accessory_transaction.associate = function(models) {
