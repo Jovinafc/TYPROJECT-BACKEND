@@ -271,6 +271,8 @@ app.post('/schedule-testing',(req,res)=>{
   //  moment(date).format()
   //   let d = new Date(date.getFullYear(),date.getMonth(),date.getDay(),date.getHours(),date.getMinutes());
    // console.log(d)
+
+
     let year = date.getFullYear();
     let month = date.getMonth();
     let day = date.getDate();
@@ -282,18 +284,19 @@ app.post('/schedule-testing',(req,res)=>{
 
         var date1 = new Date(year, month, day, hours, minutes, 0);
         console.log(date)
-          if(req.body.type==="Job") {
-              var j =
-                  schedule.scheduleJob(playstuff,date1, function () {
-                      console.log('change made')
-                      vehicle.update({status:"RENTED"},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
+    res.send('Task Initiated ' + date1)
+    var j =
+        schedule.scheduleJob(playstuff, date1, function () {
+            console.log(playstuff)
+            console.log('change made')
+            vehicle.update({status: "RENTED"}, {where: {vehicle_id: req.body.vehicle_id}}).then(() => {
 
-                      })
+            })
 
-                  })
-              res.send('Task Initiated '+date1)
-          }
-          else if(req.body.type==="Cancel")
+        })
+
+
+         if(req.body.type==="Cancel")
           {
               let my_job = schedule.scheduledJobs[playstuff]
               my_job.cancel();

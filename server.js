@@ -814,9 +814,17 @@ app.post('/rent-now',async (req,res)=>{
                                     card_details.update({funds: bank_details.dataValues.funds + totalAmount}, {where: {name: "Bank"}}).then(() => {
                                         console.log('Transfer from Client to Bank')
                                  
-                              console.log(date1)              
-                                  console.log(jobName)              
-                        var j = schedule.scheduleJob(jobName, date1, function () {
+                              console.log(date);
+                                        console.log(jobName)
+
+                                    });
+                                })
+
+                            })
+
+                        });
+
+                            var j = schedule.scheduleJob(jobName, date1, function () {
                            console.log('End Date Initiated')
                             vehicle.update({status: 'AVAILABLE'}, {where: {vehicle_id: vehicle_id}}).then(() => {
                                 card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
@@ -875,13 +883,10 @@ app.post('/rent-now',async (req,res)=>{
                             })
 
 
-
+//node schedule
                                             })
-                                        });
-                                    })
+               //
 
-                                })
-                            });
                         })
                     })
 
@@ -1736,18 +1741,21 @@ app.post('/checkout-check',async (req,res)=>{
 //---- Checkout ----
 app.post('/checkout',async (req,res)=>{
     const Op = Sequelize.Op;
-    let accessory_details=[];
+    let user_details=[];
     let accessory_id=[];
     let quantity=[]
     let price =[]
     let totalPrice=[];
     const test =await cart_storage.findAll({where:{user_id:req.body.user_id}}).then((result)=>{
-
+        user.findOne({where:{user_id:req.body.user_id}}).then((user_details1)=>{
+            user_details.push(user_details1.dataValues)
+        })
         if(result.length===0)
         {
             res.send('No Items In Cart');
             return false;
         }
+
         for(let i in result) {
             quantity.push(result[i].dataValues.quantity)
 
@@ -1755,7 +1763,8 @@ app.post('/checkout',async (req,res)=>{
                 price.push(data.dataValues.accessory_price)
              let total_price=(result[i].dataValues.quantity *  data.dataValues.accessory_price  )
             totalPrice.push(total_price)
-
+              let name = user_details[0].first_name+" "+user_details.last_name
+            create_accessory(req.body.user_id,data.dataValues.accessory_id,result[i].dataValues.quantity,name,"Developer",total_price,"SOLD")
 
               accessory.update({accessory_qty:data.dataValues.accessory_qty - result[i].dataValues.quantity},{where:{accessory_id:data.dataValues.accessory_id}})
 
