@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     },
     vehicle_id: DataTypes.BIGINT,
+    user_id:DataTypes.BIGINT,
     transaction_type: DataTypes.STRING,
     from: DataTypes.STRING,
     to: DataTypes.STRING,

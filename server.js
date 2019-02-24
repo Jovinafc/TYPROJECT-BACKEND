@@ -659,6 +659,7 @@ catch(error){
 
 //------ Buying Logic ----
 app.post('/buy-now',(req,res)=> {
+    const Op = Sequelize.Op
     let vehicles = req.body.vehicles
     let amount = parseInt(vehicles.amount);
     let user_id = vehicles.user_id;
@@ -666,16 +667,21 @@ app.post('/buy-now',(req,res)=> {
     let owner_id=null;
     let owner_name='';
     let vehicle_type='';
+    let owner_user_id=null;
     let client_account_no = vehicles.client_bank_account;
     let owner_account_no = vehicles.owner_bank_account;
     user.findOne({where:{user_id:vehicles.client_id}}).then((result)=>{
-       vehicle.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details)=>{
-           owner_id= owner_details.dataValues.user_id
+       vehicle.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details1)=>{
+           owner.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details)=>{
+
+           
+           owner_id= owner_details.dataValues.owner_id
+           owner_user_id = owner_details.dataValues.user_id
            console.log(owner_id);
-        user.findOne({where:{user_id:owner_id}}).then((owners1)=>{
+        user.findOne({where:{user_id:owner_user_id}}).then((owners1)=>{
 
         console.log(owners1.dataValues)
-           vehicle_type= owner_details.dataValues.vehicle_type;
+           vehicle_type= owner_details1.dataValues.vehicle_type;
            owner_name = owners1.dataValues.first_name+ " "+ owners1.dataValues.last_name
 
 
@@ -733,9 +739,10 @@ app.post('/buy-now',(req,res)=> {
    })
 })
 })
+})
 //---------- Renting Logic
 app.post('/rent-now',async (req,res)=>{
-
+    const Op = Sequelize.Op
     let vehicle_id= req.body.vehicle_id;
     let start = req.body.start_date
     let end= req.body.end_date
@@ -756,7 +763,7 @@ app.post('/rent-now',async (req,res)=>{
         console.log(user_id)
 
     });
-    const vehicle2=  await  owner.findOne({where: {user_id: user_id}}).then((result1) => {
+    const vehicle2=  await  owner.findOne({where: {[Op.and]:[{user_id: user_id},{vehicle_id:vehicle_id}]}}).then((result1) => {
         owner_details.push(result1.dataValues)
 
     });
@@ -808,7 +815,7 @@ app.post('/rent-now',async (req,res)=>{
                                         console.log('Transfer from Client to Bank')
                                  
                               console.log(date1)              
-
+                                  console.log(jobName)              
                         var j = schedule.scheduleJob(jobName, date1, function () {
                            console.log('End Date Initiated')
                             vehicle.update({status: 'AVAILABLE'}, {where: {vehicle_id: vehicle_id}}).then(() => {
@@ -1921,13 +1928,28 @@ app.post('/remove-vehicle',(req,res)=>{
 })
 
 
-app.post('/vehicle-history',(req,res)=>{
+app.post('/vehicle-history',async (req,res)=>{
     const Op = Sequelize.Op;
     let details=[];
-    vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner},{model:vehicle}]}).then((result)=>{
+    let owner_id=[];
+   const test=await vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction"]}}]}}).then((result1)=>{
+       for(let i in result1)
+       {
+           owner_id.push(result1[i].dataValues.owner_id)
+       }
+       
+    //    setTimeout(function(){
+    //         res.send(details)
+    //    },100)
+        console.log("Worked")
+    })
+
+
+ const test1=await  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle}]}).then((result)=>{
     for(let i in result)
     {
         details.push(result[i].dataValues)
+        console.log('worked')
 
     }
     setTimeout(function(){

@@ -55,7 +55,12 @@ app.post('/test-middleware',authenticate,(req,res)=>{
 
 
 
+app.post('/test-owner',(req,res)=>{
+    //clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,user_id,vehicle_type,clientResult.dataValues.name,"Bank",amount,"In Transaction"
+    create_transaction(1,1,1,1,"Two-Wheelers","Test","Bank","Jovin",5000,"SOLD")
+    res.send('worked')
 
+})
 
 
 app.post('/request-email',(req,res)=>{
