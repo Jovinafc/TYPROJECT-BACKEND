@@ -1611,14 +1611,34 @@ app.post('/buy-accessories',(req,res)=>{
             cart_storage.destroy({where:{[Op.and]:{user_id:req.body.user_id,accessory_id:req.body.accessory_id}}}).then((result)=>{
 
                     accessory.update({accessory_qty:result1.dataValues.accessory_qty - qty}, {where: {accessory_id: req.body.accessory_id}}).then((done) => {
-                        res.send("Item removed From Cart");
+
+                     card_details.findOne({where:{bank_account_no:req.body.bank_account_no}}).then((client_details)=>{
+                         card_details.update({funds:client_details.dataValues.funds - req.body.amount},{where:{bank_account_no:req.body.bank_account_no}}).then(()=>{
+
+                             card_details.findOne({where:{name:"Developer"}}).then((developer_details)=>{
+                                card_details.update({funds:developer_details.dataValues.funds + req.body.amount},{where:{name:"Developer"}}).then(()=>{
+                            user.findOne({where:{user_id:req.body.user_id}}).then((user_details)=>{
+
+
+                                    let name= user_details.dataValues.first_name+" "+user_details.dataValues.last_name
+                                    create_accessory(req.body.user_id,req.body.accessory_id,req.body.quantity,name,"Developer",req.body.amount,"SOLD")
+                                res.send("Item removed From Cart");
+                            })
+
+                                })
+                             })
+                     })
+
+
+
                     })
                 })
 
 
             })
+                })
         }
-    })
+
 
 })
 
@@ -1642,6 +1662,9 @@ app.post('/direct-buy-check',(req,res)=>{
 
 app.post('/direct-buy',(req,res)=>{
    try{
+       user.findOne({where:{user_id:req.body.user_id}}).then((user_details)=>{
+
+
         accessory.findOne({where: {accessory_id: req.body.accessory_id}}).then((result) => {
                 accessory.update({accessory_qty: result.dataValues.accessory_qty - req.body.quantity},{where:{accessory_id: req.body.accessory_id}}).then(() => {
                 console.log(result.dataValues.accessory_qty)
@@ -1664,9 +1687,15 @@ app.post('/direct-buy',(req,res)=>{
                                                 card_details.update({funds: details1.dataValues.funds + req.body.amount}, {where: {name: "Bank"}}).then(() => {
 
                                                     card_details.update({funds: developer_details.dataValues.funds + req.body.amount}, {where: {name: "Developer"}}).then(() => {
+
+                                                        let name= user_details.dataValues.first_name+" "+user_details.dataValues.last_name
+                                                        create_accessory(req.body.user_id,req.body.accessory_id,req.body.quantity,name,"Developer",req.body.amount,"SOLD")
+
+
                                                         res.send("Accessory Purchased")
                                                         console.log('')
                                                     })
+                                                })
                                                 })
                                     })
                                 })
