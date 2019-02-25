@@ -804,9 +804,11 @@ app.post('/rent-now',async (req,res)=>{
                         let minutes = date.getMinutes();
                         let jobName = owner_details[0].name+" "+vehicle_id;
                         var date1 = new Date(year, month, day, hours, minutes, 0);
+                        console.log('Ending Date' +date1+date)
+
                         res.send('Vehicle Rented');
                         //from client to bank
-                        create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_id, transaction_type, client_details[0].name, "Bank", totalAmount, "In Transaction")
+                        create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_client_id, transaction_type, client_details[0].name, "Bank", totalAmount, "Rent In Process")
                         card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
                             let client_funds = details.dataValues.funds;
                             card_details.findOne({where: {name: "Bank"}}).then((bank_details) => {
@@ -836,29 +838,30 @@ app.post('/rent-now',async (req,res)=>{
                                                 //deducting funds from bank
 
 
-                                                card_details.update({funds: bank_details.dataValues.funds - deposit}).then(() => {
+                                                card_details.update({funds: bank_details.dataValues.funds - deposit},{where:{name: "Bank"}}).then(() => {
                                                     //clients deposit being return
-                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_id, transaction_type, "Bank", client_details[0].name, deposit, "In Transaction")
+                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_client_id, transaction_type, "Bank", client_details[0].name, deposit, "In Transaction")
 
 
-                                                    card_details.update({funds: details.dataValues.funds + deposit}).then(() => {
+                                                    card_details.update({funds: details.dataValues.funds + deposit},{where:{bank_account_no: client_bank_account}}).then(() => {
 
 
                                                         card_details.findOne({where: {name: "Bank"}}).then((bank_details1) => {
-                                                            card_details.update({funds: bank_details1.dataValues.funds - amount + 100}).then(() => {
+                                                            card_details.update({funds: bank_details1.dataValues.funds - (amount-100) },{where:{name: "Bank"}}).then(() => {
 
-                                                                card_details.update({funds: details1.dataValues.funds + amount - 100}).then(() => {
+                                                                card_details.update({funds: details1.dataValues.funds + (amount - 100)},{where:{name:owner_bank_account}}).then(() => {
 
 
-                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id, user_id,transaction_type, "Bank", owner_details[0].name, (amount-100), "In Transaction")
+                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id, user_client_id,transaction_type, "Bank", owner_details[0].name, (amount-100), "RENTED")
 
                                                                     // developer being given his share
                                                                     card_details.findOne({where: {name: "Bank"}}).then((bank_details2) => {
-                                                                        card_details.update({funds: bank_details2.dataValues.funds - 100}).then(() => {
+                                                                        card_details.update({funds: bank_details2.dataValues.funds - 100},{where:{name:"Bank"}}).then(() => {
 
 
-                                                                            card_details.update({funds: developer_details.dataValues.funds + 100}).then(() => {
-                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id,user_id,transaction_type, "Bank", "Developer", amount, "RENTED")
+
+                                                                            card_details.update({funds: developer_details.dataValues.funds + 100},{where:{name: "Developer"}}).then(() => {
+                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id,user_client_id,transaction_type, "Bank", "Developer", amount, "In Transaction")
 
                                                                                 console.log("Payment Settled");
 
@@ -1640,6 +1643,7 @@ app.post('/buy-accessories',(req,res)=>{
         }
 
 
+})
 })
 
 //----accessory buy
