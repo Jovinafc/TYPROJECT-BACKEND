@@ -1228,7 +1228,7 @@ const update1 =await user.update({first_name:users.first_name,last_name:users.la
 app.post('/fetch-specific-user-vehicles',(req,res)=>{
     let users = req.body;
     let vehicle_details=[];
-    vehicle.findAll({where:{user_id:users.user_id}}).then((result)=>{
+    vehicle.findAll({where:{user_id:users.user_id},include:[{model:client}]}).then((result)=>{
         for(let vehicle in result)
         {
             vehicle_details.push(result[vehicle].dataValues)
@@ -1987,7 +1987,7 @@ app.post('/vehicle-history',async (req,res)=>{
     })
 
 
- const test1=await  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle}]}).then((result)=>{
+ const test1=await  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle},{model:rating},{model:comment}]}).then((result)=>{
     for(let i in result)
     {
         details.push(result[i].dataValues)
@@ -2004,7 +2004,22 @@ app.post('/vehicle-history',async (req,res)=>{
 })
 
 //--- Filter ---
+app.get('/filter',(req,res)=>{
+    const Op = Sequelize.Op
+    let typeOfService=req.query.type_of_service.split(',')
+    let vehicle_type=req.query.vehicle_type.split(',')
+    // let fuel_type = req.query.fuel_type.split(',')
+    // let select_state =req.query.select_state.split(',')
+    // let km_driven=req.query.km_driven.split(',')
+    // let price = req.query.price.split(',')
 
+    vehicle.findAll({where:{[Op.and]:[{[Op.or]:[{[Op.in]:[typeOfService]}]},{[Op.or]:[{[Op.in]:[vehicle_type]}]}]}}).then((result)=>{
+        res.send(vehicle_id[0])
+        console.log(result)
+    })
+
+
+})
 //--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')
