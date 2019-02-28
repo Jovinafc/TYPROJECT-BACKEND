@@ -2023,17 +2023,48 @@ app.post('/vehicle-history',async (req,res)=>{
 //--- Filter ---
 app.get('/filter',(req,res)=>{
     const Op = Sequelize.Op
-    let typeOfService=req.query.type_of_service.split(',')
-    let vehicle_type=req.query.vehicle_type.split(',')
-    // let fuel_type = req.query.fuel_type.split(',')
-    // let select_state =req.query.select_state.split(',')
-    // let km_driven=req.query.km_driven.split(',')
-    // let price = req.query.price.split(',')
+    let typeOfService=null;
+    let vehicle_type=null;
+    let fuel_type = null;
+    let select_state = null;
+    let km_driven=null;
+    let price = null;
+    if(req.query.type_of_service !== undefined)
+    {
+         typeOfService=req.query.type_of_service.split(',')
+    }
+     if(req.query.vehicle_type !== undefined)
+    {
+        vehicle_type = req.query.vehicle_type.split(',');
 
-    vehicle.findAll({where:{[Op.and]:[{[Op.or]:[{[Op.in]:[typeOfService]}]},{[Op.or]:[{[Op.in]:[vehicle_type]}]}]}}).then((result)=>{
-        res.send(vehicle_id[0])
-        console.log(result)
-    })
+    }
+     if(req.query.fuel_type !== undefined)
+    {
+        fuel_type =req.query.fuel_type.split(',');
+    }
+     if(req.query.select_state !== undefined)
+    {
+            select_state =req.query.select_state.split(',');
+
+    }
+    if(req.query.km_driven !== undefined)
+    {
+        km_driven = req.query.km_driven.split(',');
+    }
+    if(req.query.price !== undefined)
+    {
+        price =req.query.price.split(',');
+    }
+
+
+        vehicle.findAll({where:{[Op.and]:[{vehicle_type:{[Op.or]:vehicle_type}},{fuel_type:{[Op.or]:fuel_type}},{registration_state:{[Op.or]:select_state}}]}}).then((result)=>{
+            for(let i in result)
+            {
+                console.log(result[i].dataValues)
+            }
+            res.send('worked')
+        })
+
 
 
 })
