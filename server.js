@@ -829,39 +829,41 @@ app.post('/rent-now',async (req,res)=>{
                             var j = schedule.scheduleJob(jobName, date1, function () {
                            console.log('End Date Initiated')
                             vehicle.update({status: 'AVAILABLE'}, {where: {vehicle_id: vehicle_id}}).then(() => {
-                                card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
+                                card_details.findOne({where: {bank_account_no: client_bank_account}}).then((clientDetails) => {
 
-                                    card_details.findOne({where: {bank_account_no: owner_bank_account}}).then((details1) => {
+                                    card_details.findOne({where: {bank_account_no: owner_bank_account}}).then((ownerDetails) => {
                                         owner_funds = details1.dataValues.funds;
                                         card_details.findOne({where: {name: "Developer"}}).then((developer_details) => {
-                                            card_details.findOne({where: {name: "Bank"}}).then((bank_details) => {
+                                            card_details.findOne({where: {name: "Bank"}}).then((bank_details1) => {
                                                 //deducting funds from bank
 
 
-                                                card_details.update({funds: bank_details.dataValues.funds - deposit},{where:{name: "Bank"}}).then(() => {
+                                                card_details.update({funds: bank_details1.dataValues.funds - deposit},{where:{name: "Bank"}}).then(() => {
                                                     //clients deposit being return
                                                     create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_client_id, transaction_type, "Bank", client_details[0].name, deposit, "In Transaction")
 
 
-                                                    card_details.update({funds: details.dataValues.funds + deposit},{where:{bank_account_no: client_bank_account}}).then(() => {
+                                                    card_details.update({funds: clientDetails.dataValues.funds + deposit},{where:{bank_account_no: client_bank_account}}).then(() => {
+                                                        let ownerShare = amount -100
 
 
-                                                        card_details.findOne({where: {name: "Bank"}}).then((bank_details1) => {
-                                                            card_details.update({funds: bank_details1.dataValues.funds - (amount-100) },{where:{name: "Bank"}}).then(() => {
+                                                        card_details.findOne({where: {name: "Bank"}}).then((bank_details2) => {
+                                                            card_details.update({funds: bank_details2.dataValues.funds - ownerShare },{where:{name: "Bank"}}).then(() => {
 
-                                                                card_details.update({funds: details1.dataValues.funds + (amount - 100)},{where:{name:owner_bank_account}}).then(() => {
+                                                                card_details.update({funds: ownerDetails.dataValues.funds + ownerShare},{where:{name:owner_bank_account}}).then(() => {
+                                                                    let ownerAmount = amount - 100;
 
-
-                                                                    create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id, user_client_id,transaction_type, "Bank", owner_details[0].name, (amount-100), "RENTED")
 
                                                                     // developer being given his share
-                                                                    card_details.findOne({where: {name: "Bank"}}).then((bank_details2) => {
-                                                                        card_details.update({funds: bank_details2.dataValues.funds - 100},{where:{name:"Bank"}}).then(() => {
+                                                                    card_details.findOne({where: {name: "Bank"}}).then((bank_details3) => {
+                                                                        card_details.update({funds: bank_details3.dataValues.funds - 100},{where:{name:"Bank"}}).then(() => {
 
 
 
                                                                             card_details.update({funds: developer_details.dataValues.funds + 100},{where:{name: "Developer"}}).then(() => {
-                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id,user_client_id,transaction_type, "Bank", "Developer", amount, "In Transaction")
+                                                                                let developerAmount = 100;
+                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id,user_client_id,transaction_type, "Bank", "Developer", developerAmount, "In Transaction")
+                                                                                create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id, user_client_id,transaction_type, "Bank", owner_details[0].name, ownerAmount, "RENTED")
 
                                                                                 console.log("Payment Settled");
 
@@ -1832,11 +1834,26 @@ app.post('/checkout',async (req,res)=>{
 
 //-----Cancel a Booking ---
 app.post('/cancel-booking',(req,res)=>{
+    const Op = Sequelize.Op;
     let jobName = req.body.owner_name+" "+req.body.vehicle_id
     let my_job = schedule.scheduledJobs[jobName]
     my_job.cancel();
     vehicle.update({status:"AVAILABLE"},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
-        res.send("Booking Cancelled");
+        card_details.findOne({where:{name:"Bank"}}).then((bank_details)=>{
+        card_details.update({funds:bank_details.dataValues.funds - req.body.deposit - req.body.amount},{where:{name:"Bank"}}).then(()=> {
+            card_details.findOne({where: {bank_account_no: req.body.client_bank_account_no}}).then((clientDetails) => {
+                card_details.update({funds: clientDetails + req.body.deposit + req.body.amount}, {where: {bank_account_no: req.body.client_bank_account_no}}).then(() => {
+
+
+                    vehicle_transaction.update({status:"Booking Cancelled"},{where:{[Op.and]: [{vehicle:req.body.vehicle_id}, {user_id: req.body.user_id}, {status:  "Rent In Process"}]}}).then(()=>{
+                        res.send("Booking Cancelled");
+                    })
+
+                })
+            })
+        })
+        })
+
         }
     )
 
@@ -1987,7 +2004,7 @@ app.post('/vehicle-history',async (req,res)=>{
     })
 
 
- const test1=await  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle},{model:rating},{model:comment}]}).then((result)=>{
+ const test1=await  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle},{model:rating},{model:feedback}]}).then((result)=>{
     for(let i in result)
     {
         details.push(result[i].dataValues)

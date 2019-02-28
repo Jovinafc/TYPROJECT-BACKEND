@@ -18,6 +18,9 @@ const messagebird = require('messagebird')('qI8MEqDZ9CXHedPy870iEVIcx');
 const otplib = require('otplib');
 const nodemailer = require("nodemailer");
 const url = require('url');
+const pdfkit = require('pdfkit')
+const fs = require('fs')
+
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -52,6 +55,16 @@ app.post('/test-middleware',authenticate,(req,res)=>{
     res.send('worked '+test)
 })
 
+
+
+app.post('/test-pdf',(req,res)=>{
+    const doc= new pdfkit;
+    doc.pipe(fs.createWriteStream('uploads/file.pdf'));
+    // write to PDF
+    doc.text('Hello world!', 100, 100)
+    doc.pipe(res);                                       // HTTP response
+    doc.end()
+})
 
 
 
