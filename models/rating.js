@@ -18,8 +18,10 @@ module.exports = (sequelize, DataTypes) => {
        references: {
             model:"vehicle",
            key:"vehicle_id"
-       }
+       },
+
    },
+
     vehicle_name: DataTypes.STRING,
     user_name: DataTypes.STRING,
     rating_number: DataTypes.BIGINT

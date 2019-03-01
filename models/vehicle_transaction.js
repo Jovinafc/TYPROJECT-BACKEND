@@ -16,7 +16,13 @@ module.exports = (sequelize, DataTypes) => {
 
         }
     },
-    vehicle_id: DataTypes.BIGINT,
+    vehicle_id:{
+      type:DataTypes.BIGINT,
+      references: {
+          model:"ratings",
+          key:"vehicle_id"
+      }
+    } ,
     user_id:DataTypes.BIGINT,
     transaction_type: DataTypes.STRING,
     from: DataTypes.STRING,
