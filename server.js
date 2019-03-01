@@ -21,7 +21,6 @@ const fourWheeler = require('./models').fourWheeler
 const vehicle = require('./models').vehicle;
 const user = require('./models').user;
 const inventory = require('./models').inventory;
-const transaction =require('./models').transaction;
 const rent = require('./models').rent;
 const owner = require('./models').owner;
 const client = require('./models').client;
@@ -32,6 +31,7 @@ const rating = require('./models').rating
 const feedback = require('./models').feedback
 const accessory_transaction = require('./models').accessory_transaction
 const vehicle_transaction = require('./models').vehicle_transaction
+const accessory_rating = require('./models').accessory_rating
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -2097,6 +2097,98 @@ app.get('/fetch-vehicle-comments-and-ratings',(req,res)=>{
 
 
 })
+
+
+//---- accessory ratings ----
+app.post('/accessory-rating',(req,res)=>{
+    const Op = Sequelize.Op
+   accessory_rating.findOne({where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then((result)=>{
+       if(result===null)
+       {
+           accessory_rating.create({
+               user_id:req.body.user_id,
+               accessory_id:req.body.accessory_id,
+               rating:req.body.rating
+           })
+           res.send('Rating Made')
+       }
+       else {
+           if(result.dataValues.rating === null) {
+               accessory_rating.update({rating: req.body.rating}, {where: {[Op.and]: [{accessory_id: req.body.accessory_id}, {user_id: req.body.user_id}]}}).then(() => {
+                   res.send('Rating Added')
+
+               })
+           }
+           else{
+               res.send('Already Rated')
+           }
+       }
+   })
+
+
+})
+
+// ---- adding accessory review -------
+app.post('/accessory-review',(req,res)=>{
+    const Op = Sequelize.Op
+    accessory_rating.findOne({where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then((result)=>{
+        if(result===null)
+        {
+            accessory_rating.create({
+                user_id:req.body.user_id,
+                accessory_id:req.body.accessory_id,
+                review:req.body.review
+            })
+            res.send('Review Made')
+        }
+        else {
+            if(result.dataValues.review === null) {
+                accessory_rating.update({review: req.body.review}, {where: {[Op.and]: [{accessory_id: req.body.accessory_id}, {user_id: req.body.user_id}]}}).then(() => {
+                    res.send('Rating Added')
+
+                })
+            }
+            else{
+                res.send('Already Reviewed')
+            }
+        }
+    })
+
+})
+
+// ---------- Fetch all accessory ratings and reviews ---
+app.post('/fetch-accessory-ratings-and-reviews',(req,res)=>{
+    let details=[];
+        accessory_rating.findAll().then((result)=>{
+            for(let i in result)
+            {
+                details.push(result[i].dataValues)
+            }
+        })
+    setTimeout(function () {
+        res.send(details)
+    },100)
+
+
+
+})
+
+// fetch specific accessory review and rating
+app.post('/fetch-specific-accessory-rating-and-review',(req,res)=>{
+    let details=[];
+    accessory_rating.findAll({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+        for(let i in result)
+        {
+            details.push(result[i].dataValues)
+        }
+
+    })
+    setTimeout(function () {
+        res.send(details)
+    },100)
+})
+
+
 
 //--------------
 app.listen(3001,()=>{

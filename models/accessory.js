@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   accessory.associate = function(models) {
   accessory.hasMany(models.cart_storage,{foreignKey:'accessory_id'})
       accessory.hasMany(models.accessory_transaction,{foreignKey:'accessory_id'})
+      accessory.hasMany(models.accessory_rating,{foreignKey:'accessory_id'})
   };
   return accessory;
 };
