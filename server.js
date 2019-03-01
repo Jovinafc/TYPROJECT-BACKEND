@@ -2068,6 +2068,36 @@ app.get('/filter',(req,res)=>{
 
 
 })
+
+//---------- Fetch Comments and Ratings for user --
+app.get('/fetch-vehicle-comments-and-ratings',(req,res)=>{
+    let vehicle_id = req.params.vehicle_id;
+    let comments = [];
+    let ratings =[];
+    feedback.findAll({where:{vehicle_id:vehicle_id}}).then((feedback_details)=>{
+        for(let i in feedback_details)
+        {
+            comments.push(feedback_details[i].dataValues)
+        }
+
+    })
+    rating.findAll({where:{vehicle_id:vehicle_id}}).then((ratings_details)=>{
+        for(let i in ratings_details)
+        {
+            ratings.push(ratings_details[i].dataValues)
+        }
+    })
+    setTimeout(function () {
+        let sendDetails={
+            comments,
+            ratings
+        }
+        res.send(sendDetails)
+    },100)
+
+
+})
+
 //--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')

@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
    vehicle_id: {
         type:DataTypes.BIGINT,
        references: {
-            model:"vehicle",
+            model:"vehicle_transaction",
            key:"vehicle_id"
        },
 
