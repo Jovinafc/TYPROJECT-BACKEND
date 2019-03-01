@@ -26,8 +26,9 @@ module.exports = (sequelize, DataTypes) => {
     vehicle.hasOne(models.client,{foreignKey:'vehicle_id'})
       vehicle.hasOne(models.owner,{foreignKey:'vehicle_id'})
       // vehicle.hasOne(models.user,{foreignKey:'vehicle_id'})
-      vehicle.hasMany(models.feedback,{foreignKey:'vehicle_id'})
+      // vehicle.hasMany(models.feedback,{foreignKey:'vehicle_id'})
       vehicle.hasOne(models.rating,{foreignKey:'vehicle_id'})
+
       vehicle.hasMany(models.vehicle_transaction,{foreignKey:'vehicle_id'})
       vehicle.hasMany(models.accessory_transaction,{foreignKey:'vehicle_id'})
 

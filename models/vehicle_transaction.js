@@ -18,6 +18,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     vehicle_id:{
       type:DataTypes.BIGINT,
+        references:{
+          model:"vehicle_transaction",
+          key:"vehicle_id"
+        }
 
     } ,
     user_id:DataTypes.BIGINT,
@@ -30,7 +34,8 @@ module.exports = (sequelize, DataTypes) => {
   vehicle_transaction.associate = function(models) {
       vehicle_transaction.belongsTo(models.owner,{foreignKey:"owner_id"})
       vehicle_transaction.belongsTo(models.vehicle,{foreignKey: "vehicle_id"})
-
+       vehicle_transaction.hasOne(models.rating,{foreignKey:"vehicle_id"})
+      vehicle_transaction.hasOne(models.feedback,{foreignKey:"vehicle_id"})
   };
   return vehicle_transaction;
 };

@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     vehicle_id: {
         type:DataTypes.BIGINT,
         references:{
-            model:"vehicle",
+            model:"vehicle_transaction",
             key:"vehicle_id"
         }
     },
@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     feedback_comment: DataTypes.STRING
   }, {underscore:true});
   feedback.associate = function(models) {
-
+    feedback.belongsTo(models.vehicle_transaction,{foreignKey:'vehicle_id'})
   };
   return feedback;
 };
