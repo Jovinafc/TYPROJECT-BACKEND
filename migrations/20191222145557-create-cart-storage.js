@@ -11,6 +11,7 @@ module.exports = {
       user_id: {
         type: Sequelize.BIGINT
       },
+      
       accessory_id:{
           type:Sequelize.BIGINT,
           references:{

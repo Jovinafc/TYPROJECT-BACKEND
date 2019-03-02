@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         references:{
             model:"user",
             key:"user_id"
-        }
+        },primaryKey: true
       },
    vehicle_id: {
         type:DataTypes.BIGINT,
@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
             model:"vehicle_transaction",
            key:"vehicle_id"
        },
+       primaryKey: true
 
    },
 

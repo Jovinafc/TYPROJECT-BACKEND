@@ -13,15 +13,17 @@ module.exports = {
         type: Sequelize.BIGINT,
           references: {
             model:"vehicle",
-              key:"vehicle_id"
-          }
+              key:"vehicle_id" 
+          },
+          primaryKey: true
       },
         user_id: {
             type: Sequelize.BIGINT,
             references:{
                 model:"users",
                 key:"user_id"
-            }
+            },
+            primaryKey: true
         },
 
 

@@ -1991,33 +1991,42 @@ app.post('/vehicle-history',async (req,res)=>{
     const Op = Sequelize.Op;
     let details=[];
     let owner_id=[];
-   const test=await vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction"]}}]}}).then((result1)=>{
+    let vehicle_id=[];
+    let user_id=[];
+ let test=await   vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction"]}}]}}).then((result1)=>{
        for(let i in result1)
        {
            owner_id.push(result1[i].dataValues.owner_id)
+           vehicle_id.push(result1[i].dataValues.vehicle_id)
+           user_id.push(result1[i].dataValues.user_id)
        }
        
     //    setTimeout(function(){
     //         res.send(details)
     //    },100)
-        console.log("Worked")
+        console.log("Worked"+vehicle_id)    
     })
 
 
- const test1=await  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle},{model:rating},{model:feedback}]}).then((result)=>{
+    
+    let test2= await
+  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle},{model:rating},{model:feedback}]}).then((result)=>{
     for(let i in result)
     {
         details.push(result[i].dataValues)
         console.log('worked')
 
     }
-    setTimeout(function(){
-        res.send(details)
-    },100)
+  
 
 
 
     })
+
+setTimeout(function(){
+
+    res.send(details)
+},100)
 })
 
 //--- Filter ---

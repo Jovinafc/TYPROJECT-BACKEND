@@ -12,8 +12,9 @@ module.exports = {
         type: Sequelize.BIGINT,
         references:{
             model:"vehicle",
-            key:"vehicle_id"
-        }
+            key:"vehicle_id" 
+        },
+        primaryKey: true
       },
       vehicle_name: {
         type: Sequelize.STRING
@@ -23,7 +24,8 @@ module.exports = {
          references: {
             model:"users",
             key:"user_id"
-         }
+         },
+         primaryKey: true
       },
       user_name: {
         type: Sequelize.STRING

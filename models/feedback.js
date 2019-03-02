@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
         references:{
             model:"vehicle_transaction",
             key:"vehicle_id"
-        }
+        },
+        primaryKey: true
     },
     vehicle_name: DataTypes.STRING,
    user_id: {
@@ -19,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
        references: {
             model:"user",
            key:"user_id"
-       }
+       },
+       primaryKey: true
    },
     user_name: DataTypes.STRING,
     feedback_comment: DataTypes.STRING
