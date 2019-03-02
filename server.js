@@ -832,7 +832,7 @@ app.post('/rent-now',async (req,res)=>{
                                 card_details.findOne({where: {bank_account_no: client_bank_account}}).then((clientDetails) => {
 
                                     card_details.findOne({where: {bank_account_no: owner_bank_account}}).then((ownerDetails) => {
-                                        owner_funds = details1.dataValues.funds;
+                                        owner_funds = ownerDetails.dataValues.funds;
                                         card_details.findOne({where: {name: "Developer"}}).then((developer_details) => {
                                             card_details.findOne({where: {name: "Bank"}}).then((bank_details1) => {
                                                 //deducting funds from bank
@@ -845,12 +845,12 @@ app.post('/rent-now',async (req,res)=>{
 
                                                     card_details.update({funds: clientDetails.dataValues.funds + deposit},{where:{bank_account_no: client_bank_account}}).then(() => {
                                                         let ownerShare = amount -100
-
+                                                        console.log("Owner Share"+ownerShare+" "+owner_bank_account)
 
                                                         card_details.findOne({where: {name: "Bank"}}).then((bank_details2) => {
                                                             card_details.update({funds: bank_details2.dataValues.funds - ownerShare },{where:{name: "Bank"}}).then(() => {
 
-                                                                card_details.update({funds: ownerDetails.dataValues.funds + ownerShare},{where:{name:owner_bank_account}}).then(() => {
+                                                                card_details.update({funds: ownerDetails.dataValues.funds + ownerShare},{where:{bank_account_no:owner_bank_account}}).then(() => {
                                                                     let ownerAmount = amount - 100;
 
 
@@ -1798,11 +1798,11 @@ app.post('/checkout',async (req,res)=>{
                 price.push(data.dataValues.accessory_price)
              let total_price=(result[i].dataValues.quantity *  data.dataValues.accessory_price  )
             totalPrice.push(total_price)
-              let name = user_details[0].first_name+" "+user_details.last_name
+              let name = user_details[0].first_name+" "+user_details[0].last_name
             create_accessory(req.body.user_id,data.dataValues.accessory_id,result[i].dataValues.quantity,name,"Developer",total_price,"SOLD")
 
               accessory.update({accessory_qty:data.dataValues.accessory_qty - result[i].dataValues.quantity},{where:{accessory_id:data.dataValues.accessory_id}})
-
+           
 
           })
 
@@ -1815,6 +1815,14 @@ app.post('/checkout',async (req,res)=>{
                 {
                    return a+b;
                 }
+
+                card_details.findOne({where:{bank_account_no:user_details[0].bank_account_no}}).then((bank_details)=>{
+                    card_details.update({funds:bank_details.dataValues.funds - total_sum},{where:{bank_account_no:user_details[0].bank_account_no}}).then(()=>{
+                        
+                    })
+                })  
+
+
                 console.log(total_sum)
                 res.send("Total Amount: "+total_sum)
             },2000)
@@ -1842,10 +1850,10 @@ app.post('/cancel-booking',(req,res)=>{
         card_details.findOne({where:{name:"Bank"}}).then((bank_details)=>{
         card_details.update({funds:bank_details.dataValues.funds - req.body.deposit - req.body.amount},{where:{name:"Bank"}}).then(()=> {
             card_details.findOne({where: {bank_account_no: req.body.client_bank_account_no}}).then((clientDetails) => {
-                card_details.update({funds: clientDetails + req.body.deposit + req.body.amount}, {where: {bank_account_no: req.body.client_bank_account_no}}).then(() => {
+                card_details.update({funds: clientDetails.dataValues.funds + req.body.deposit + req.body.amount}, {where: {bank_account_no: req.body.client_bank_account_no}}).then(() => {
 
 
-                    vehicle_transaction.update({status:"Booking Cancelled"},{where:{[Op.and]: [{vehicle:req.body.vehicle_id}, {user_id: req.body.user_id}, {status:  "Rent In Process"}]}}).then(()=>{
+                    vehicle_transaction.update({status:"Booking Cancelled"},{where:{[Op.and]: [{vehicle_id:req.body.vehicle_id}, {user_id: req.body.user_id}, {status:  "Rent In Process"}]}}).then(()=>{
                         res.send("Booking Cancelled");
                     })
 
