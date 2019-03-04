@@ -38,6 +38,7 @@ const {authenticate} = require('./middleware/authenticate');
 //----methods ---
 const {create_transaction} = require('./methods/transaction-creation')
 const {create_accessory}= require('./methods/accessory_create')
+const {generate_email} = require('./methods/generate-email');
 
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({

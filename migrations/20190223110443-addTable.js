@@ -12,8 +12,12 @@ module.exports = {
 
 
         queryInterface.addConstraint("vehicle_transactions",["user_id"],{
-            type:"primary key",
+            type:"foreign key",
             name:"user_id",
+            references:{
+                table: 'user_id',
+                field: 'user_id'
+            }
 
         })
 

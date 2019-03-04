@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "nodemon playground/testingServer.js",
-    "data": "node playground/vehicle_models.js",
+    "data": "node playground/vehicle_models.js && node playground/cardDetails.js && node accessory_inventory.js",
     "start-watch": "node server.js",
     "dev": "(start npm run start-watch && start npm run data) || (npm run start-watch & npm run data)",
     "start": "npm run dev"

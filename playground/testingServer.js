@@ -66,7 +66,11 @@ app.post('/test-pdf',(req,res)=>{
     doc.end()
 })
 
+app.post('/test-email',(req,res)=>{
+    const {generate_email}=require('./../methods/generate-email')
+    generate_email("beast0013@mailinator.com","test","Hello")
 
+})
 
 app.post('/test-owner',(req,res)=>{
     //clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,user_id,vehicle_type,clientResult.dataValues.name,"Bank",amount,"In Transaction"
