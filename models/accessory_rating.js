@@ -7,7 +7,13 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
     },
-      user_id: DataTypes.BIGINT,
+      user_id: {
+        type:DataTypes.BIGINT,
+          references: {
+            model:"users",
+              key:"user_id"
+          }
+      },
     accessory_id: {
         type:DataTypes.BIGINT,
         references:{
@@ -20,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   accessory_rating.associate = function(models) {
 accessory_rating.belongsTo(models.accessory,{foreignKey:"accessory_id"})
+      accessory_rating.belongsTo(models.user,{foreignKey: "user_id"})
   };
   return accessory_rating;
 };

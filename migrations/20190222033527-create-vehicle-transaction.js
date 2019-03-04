@@ -5,7 +5,7 @@ module.exports = {
       id: {
         allowNull: false,
         autoIncrement: true,
-        primaryKey: true,
+        primaryKey:true,
         type: Sequelize.INTEGER
       },
       client_id: {
@@ -19,7 +19,7 @@ module.exports = {
           }
       },
       vehicle_id: {
-        type: Sequelize.BIGINT
+        type: Sequelize.BIGINT,
       },
       transaction_type: {
         type: Sequelize.STRING

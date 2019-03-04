@@ -9,7 +9,11 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       user_id: {
-        type: Sequelize.BIGINT
+        type: Sequelize.BIGINT,
+          references: {
+            model:"users",
+            key:"user_id"
+          }
       },
       accessory_id: {
         type: Sequelize.BIGINT,

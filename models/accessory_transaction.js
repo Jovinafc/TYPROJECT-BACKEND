@@ -8,7 +8,13 @@ module.exports = (sequelize, DataTypes) => {
           type: DataTypes.INTEGER
       },
     user_id: DataTypes.BIGINT,
-    accessory_id: DataTypes.BIGINT,
+    accessory_id: {
+          type:DataTypes.BIGINT,
+        references:{
+              model:"accessories",
+            key:"accessory_id"
+        }
+    },
     from: DataTypes.STRING,
     to: DataTypes.STRING,
     amount:DataTypes.DOUBLE,

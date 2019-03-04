@@ -6,18 +6,18 @@ module.exports = {
       queryInterface.addColumn(
           "vehicle_transactions",
           "user_id",
-          Sequelize.BIGINT
+          Sequelize.BIGINT,
+
       )
 
 
         queryInterface.addConstraint("vehicle_transactions",["user_id"],{
-            type:"foreign key",
+            type:"primary key",
             name:"user_id",
-            references:{
-                table:"users",
-                field:"user_id"
-            }
+
         })
+
+
 
   },
 

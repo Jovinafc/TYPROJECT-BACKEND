@@ -808,7 +808,7 @@ app.post('/rent-now',async (req,res)=>{
 
                         res.send('Vehicle Rented');
                         //from client to bank
-                        create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_client_id, transaction_type, client_details[0].name, "Bank", totalAmount, "Rent In Process")
+                        create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_client_id, transaction_type, client_details[0].name, "Bank", totalAmount, "Rent Initiated");
                         card_details.findOne({where: {bank_account_no: client_bank_account}}).then((details) => {
                             let client_funds = details.dataValues.funds;
                             card_details.findOne({where: {name: "Bank"}}).then((bank_details) => {
@@ -865,8 +865,12 @@ app.post('/rent-now',async (req,res)=>{
                                                                                 create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id,user_client_id,transaction_type, "Bank", "Developer", developerAmount, "In Transaction")
                                                                                 create_transaction(client_details[0].client_id, owner_details[0].owner_id, vehicle_id, user_client_id,transaction_type, "Bank", owner_details[0].name, ownerAmount, "RENTED")
 
-                                                                                console.log("Payment Settled");
 
+                                                                                vehicle_transaction.update({status:"Rent In Process"},{where:{[Op.and]:[{status:"Rent Initiated"},{user_id:user_client_id},{vehicle_id:vehicle_id}]}}).then(()=>{
+
+
+                                                                                console.log("Payment Settled");
+                                                                                })
                                                                             })
 
                                                                         })
@@ -2000,40 +2004,63 @@ app.post('/vehicle-history',async (req,res)=>{
     let details=[];
     let owner_id=[];
     let vehicle_id=[];
-    let user_id=[];
- let test=await   vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction"]}}]}}).then((result1)=>{
+    let ratingDetails=[];
+    let commentDetails=[];
+   // let user_id=[];
+ let test=await   vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction","Rent in Process"]}}]}}).then((result1)=>{
        for(let i in result1)
        {
            owner_id.push(result1[i].dataValues.owner_id)
            vehicle_id.push(result1[i].dataValues.vehicle_id)
-           user_id.push(result1[i].dataValues.user_id)
+          // user_id.push(result1[i].dataValues.user_id)
+          // details.push(result1[i].dataValues)
        }
        
-    //    setTimeout(function(){
-    //         res.send(details)
-    //    },100)
-        console.log("Worked"+vehicle_id)    
+        // setTimeout(function () {
+        //     res.send(details)
+        // })
+        console.log("Worked"+vehicle_id)
+
     })
 
 
     
     let test2= await
-  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.ne]:["In Transaction"]}}]},include:[{model:owner,where:{owner_id:{[Op.in]:owner_id}}},{model:vehicle},{model:rating},{model:feedback}]}).then((result)=>{
+  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction","Rent In Process"]}}]},include:[{model:owner},{model:vehicle}]}).then((result)=>{
     for(let i in result)
     {
-        details.push(result[i].dataValues)
+       details.push(result[i].dataValues)
         console.log('worked')
 
     }
-  
+
 
 
 
     })
 
-setTimeout(function(){
+    let test3 = rating.findAll({where:{user_id:req.body.user_id}}).then((rating_details)=>{
+        for(let i in rating_details)
+        {
+            ratingDetails.push(rating_details[i].dataValues)
+        }
 
-    res.send(details)
+    })
+
+    let test4 = feedback.findAll({where:{user_id:req.body.user_id}}).then((review_details)=>{
+        for(let i in review_details)
+        {
+            commentDetails.push(review_details[i].dataValues)
+        }
+    })
+
+setTimeout(function(){
+let sendDetails={
+    details,ratingDetails,commentDetails
+}
+
+
+   res.send(sendDetails)
 },100)
 })
 
@@ -2174,9 +2201,19 @@ app.post('/accessory-review',(req,res)=>{
 })
 
 // ---------- Fetch all accessory ratings and reviews ---
-app.post('/fetch-accessory-ratings-and-reviews',(req,res)=>{
+app.post('/fetch-accessory-ratings-and-reviews',async (req,res)=>{
+    const Op = Sequelize.Op;
     let details=[];
-        accessory_rating.findAll().then((result)=>{
+    let user_id=[];
+    let accessory_id=[]
+   let test1=await accessory_rating.findAll().then((user_details)=>{
+        for(let i in user_details)
+        {
+            user_id.push(user_details[i].dataValues.user_id)
+            accessory_id.push(user_details[i].dataValues.accessory_id)
+        }
+    })
+     let test2=await   accessory_rating.findAll({include:[{model:user,where:{user_id:{[Op.in]:user_id}}},{model:accessory,where:{accessory_id:{[Op.in]:accessory_id}}}]}).then((result)=>{
             for(let i in result)
             {
                 details.push(result[i].dataValues)
@@ -2190,7 +2227,22 @@ app.post('/fetch-accessory-ratings-and-reviews',(req,res)=>{
 
 })
 
-// fetch specific accessory review and rating
+// fetch specific accessory review and rating based on user_id and vehicle_id
+app.post('/fetch-specific-accessory-rating-and-review-based-on-user-accessory',(req,res)=>{
+    let details=[];
+    accessory_rating.findAll({where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then((result)=>{
+        for(let i in result)
+        {
+            details.push(result[i].dataValues)
+        }
+
+    })
+    setTimeout(function () {
+        res.send(details)
+    },100)
+})
+
+// fetch accessory based on accessory id
 app.post('/fetch-specific-accessory-rating-and-review',(req,res)=>{
     let details=[];
     accessory_rating.findAll({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
@@ -2206,6 +2258,19 @@ app.post('/fetch-specific-accessory-rating-and-review',(req,res)=>{
 })
 
 
+//fetch accessory rating based on user id
+app.post('/fetch-user-accessory-rating',(req,res)=>{
+    let display=[];
+    accessory_rating.findAll({where:{user_id:req.body.user_id}}).then((result)=>{
+        for(let i in result)
+        {
+            display.push(result[i].dataValues)
+        }
+    })
+    setTimeout(function () {
+        res.send(display)
+    },100)
+})
 
 //--------------
 app.listen(3001,()=>{
