@@ -2275,6 +2275,35 @@ app.post('/fetch-user-accessory-rating',(req,res)=>{
     },100)
 })
 
+// --- fetch ratings and reviews based on user_id and vehicle_id
+app.get('/get-vehicles',async(req,res)=>{
+    let vehicle_id= req.query.vehicle_id
+    let user_id = req.query.user_id
+    let ratings =[];
+    let reviews =[];
+    const Op =Sequelize.Op;
+   let test1=await rating.findOne({where:{[Op.and]:[{user_id:user_id},{vehicle_id:vehicle_id}]},include:[{model:user},{model:vehicle}]}).then((rating_details)=>{
+        if(rating_details === null)
+        {
+            return false;
+        }
+        ratings.push(rating_details.dataValues)
+    })
+   let test2=await feedback.findOne({where:{[Op.and]:[{user_id:user_id},{vehicle_id:vehicle_id}]},include:[{model:user},{model:vehicle}]}).then((review_details)=>{
+       if(review_details === null )
+       {
+           return false;
+       }
+        reviews.push(review_details.dataValues)
+    })
+    setTimeout(function () {
+        const details={ratings,reviews}
+        res.send(details)
+    },100)
+
+})
+
+
 //--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')

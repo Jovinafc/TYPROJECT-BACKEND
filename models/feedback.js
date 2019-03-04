@@ -29,6 +29,8 @@ module.exports = (sequelize, DataTypes) => {
   feedback.associate = function(models) {
     feedback.belongsTo(models.vehicle_transaction,{foreignKey:'vehicle_id'})
     feedback.belongsTo(models.user,{foreignKey:'user_id'})
+      feedback.belongsTo(models.vehicle,{foreignKey:'vehicle_id'})
+
 
   };
   return feedback;

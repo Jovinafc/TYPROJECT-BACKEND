@@ -30,6 +30,8 @@ module.exports = (sequelize, DataTypes) => {
   rating.associate = function(models) {
         rating.belongsTo(models.vehicle_transaction,{foreignKey:"vehicle_id"})
         rating.belongsTo(models.user,{foreignKey:"user_id"})
+      rating.belongsTo(models.vehicle,{foreignKey:"vehicle_id"})
+
   };
   return rating;
 };
