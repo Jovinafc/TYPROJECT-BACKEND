@@ -2114,18 +2114,19 @@ app.get('/filter',(req,res)=>{
 })
 
 //---------- Fetch Comments and Ratings for user --
-app.get('/fetch-vehicle-comments-and-ratings',(req,res)=>{
+app.get('/fetch-vehicle-comments-and-ratings/:vehicle_id',(req,res)=>{
     let vehicle_id = req.params.vehicle_id;
     let comments = [];
     let ratings =[];
-    feedback.findAll({where:{vehicle_id:vehicle_id}}).then((feedback_details)=>{
+    const Op = Sequelize.Op
+    feedback.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((feedback_details)=>{
         for(let i in feedback_details)
         {
             comments.push(feedback_details[i].dataValues)
         }
 
     })
-    rating.findAll({where:{vehicle_id:vehicle_id}}).then((ratings_details)=>{
+    rating.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((ratings_details)=>{
         for(let i in ratings_details)
         {
             ratings.push(ratings_details[i].dataValues)
@@ -2213,7 +2214,7 @@ app.post('/fetch-accessory-ratings-and-reviews',async (req,res)=>{
             accessory_id.push(user_details[i].dataValues.accessory_id)
         }
     })
-     let test2=await   accessory_rating.findAll({include:[{model:user,where:{user_id:{[Op.in]:user_id}}},{model:accessory,where:{accessory_id:{[Op.in]:accessory_id}}}]}).then((result)=>{
+     let test2=await   accessory_rating.findAll({include:[{model:user,where:{user_id:{[Op.in]:user_id}}},{model:accessory,where:{accessory_id:req.body.accessory_id}}]}).then((result)=>{
             for(let i in result)
             {
                 details.push(result[i].dataValues)
@@ -2245,7 +2246,8 @@ app.post('/fetch-specific-accessory-rating-and-review-based-on-user-accessory',(
 // fetch accessory based on accessory id
 app.post('/fetch-specific-accessory-rating-and-review',(req,res)=>{
     let details=[];
-    accessory_rating.findAll({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+    console.log(req.body.accessory_id)
+    accessory_rating.findAll({where:{accessory_id:req.body.accessory_id},include:[{model:user}]}).then((result)=>{
         for(let i in result)
         {
             details.push(result[i].dataValues)

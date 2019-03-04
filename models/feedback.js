@@ -28,6 +28,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {underscore:true});
   feedback.associate = function(models) {
     feedback.belongsTo(models.vehicle_transaction,{foreignKey:'vehicle_id'})
+    feedback.belongsTo(models.user,{foreignKey:'user_id'})
+
   };
   return feedback;
 };

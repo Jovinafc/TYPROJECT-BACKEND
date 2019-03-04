@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {underscore:true});
   rating.associate = function(models) {
         rating.belongsTo(models.vehicle_transaction,{foreignKey:"vehicle_id"})
+        rating.belongsTo(models.user,{foreignKey:"user_id"})
   };
   return rating;
 };
