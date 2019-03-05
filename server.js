@@ -2119,32 +2119,41 @@ app.get('/fetch-vehicle-comments-and-ratings/:vehicle_id',async (req,res)=>{
     let vehicle_id = req.params.vehicle_id;
     let comments = [];
     let ratings =[];
+    let details=[];
     const Op = Sequelize.Op
-    let test1 = await feedback.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((feedback_details)=>{
-
-        for(let i in feedback_details)
-        {
-            comments.push(feedback_details[i].dataValues)
-        }
-
+    let test = await vehicle.findOne({where:{vehicle_id:vehicle_id},include:[{model:rating},{model:feedback}]}).then((vehicle_details)=>{
+       if(vehicle_details.dataValues.feedbacks.length ===0)
+       {
+           return false;
+       }
+        details.push(vehicle_details.dataValues)
     })
-   let test2 =await rating.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((ratings_details)=>{
-        for(let i in ratings_details)
-        {
-            ratings.push(ratings_details[i].dataValues)
-        }
-    })
+
+   // let test1 = await feedback.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((feedback_details)=>{
+
+   //      for(let i in feedback_details)
+   //      {
+   //          comments.push(feedback_details[i].dataValues)
+   //      }
+   //
+   //  })
+   // let test2 =await rating.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((ratings_details)=>{
+   //      for(let i in ratings_details)
+   //      {
+   //          ratings.push(ratings_details[i].dataValues)
+   //      }
+   //  })
     setTimeout(function () {
-       if(comments.length === 0)
+       if(details.length === 0)
        {
            res.send('No reviews')
            return false;
        }
-        let sendDetails=[
-            {comments},
-            {ratings}
-        ]
-        res.send(sendDetails)
+       //  let sendDetails=[
+       //      {comments},
+       //      {ratings}
+       //  ]
+        res.send(details)
     },100)
 
 
