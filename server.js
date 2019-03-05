@@ -2115,29 +2115,35 @@ app.get('/filter',(req,res)=>{
 })
 
 //---------- Fetch Comments and Ratings for user --
-app.get('/fetch-vehicle-comments-and-ratings/:vehicle_id',(req,res)=>{
+app.get('/fetch-vehicle-comments-and-ratings/:vehicle_id',async (req,res)=>{
     let vehicle_id = req.params.vehicle_id;
     let comments = [];
     let ratings =[];
     const Op = Sequelize.Op
-    feedback.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((feedback_details)=>{
+    let test1 = await feedback.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((feedback_details)=>{
+
         for(let i in feedback_details)
         {
             comments.push(feedback_details[i].dataValues)
         }
 
     })
-    rating.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((ratings_details)=>{
+   let test2 =await rating.findAll({where:{vehicle_id:vehicle_id},include:[{model:user}]}).then((ratings_details)=>{
         for(let i in ratings_details)
         {
             ratings.push(ratings_details[i].dataValues)
         }
     })
     setTimeout(function () {
-        let sendDetails={
-            comments,
-            ratings
-        }
+       if(comments.length === 0)
+       {
+           res.send('No reviews')
+           return false;
+       }
+        let sendDetails=[
+            {comments},
+            {ratings}
+        ]
         res.send(sendDetails)
     },100)
 
