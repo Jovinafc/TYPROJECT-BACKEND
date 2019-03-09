@@ -36,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       vehicle_transaction.belongsTo(models.vehicle,{foreignKey: "vehicle_id"})
        vehicle_transaction.hasOne(models.rating,{foreignKey:"vehicle_id"})
       vehicle_transaction.hasOne(models.feedback,{foreignKey:"vehicle_id"})
+      vehicle_transaction.hasMany(models.rent,{foreignKey:"vehicle_id"})
   };
   return vehicle_transaction;
 };

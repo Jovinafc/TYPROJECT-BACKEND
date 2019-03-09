@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     end_date: DataTypes.DATE
   }, {});
   rent.associate = function(models) {
-    // associations can be defined here
+    rent.belongsTo(models.vehicle_transaction,{foreignKey:"vehicle_id"})
   };
   return rent;
 };

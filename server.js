@@ -2030,7 +2030,7 @@ app.post('/vehicle-history',async (req,res)=>{
 
     
     let test2= await
-  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction","Rent In Process"]}}]},include:[{model:owner},{model:vehicle}]}).then((result)=>{
+  vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction","Rent In Process"]}}]},include:[{model:owner},{model:vehicle},{model:rent}]}).then((result)=>{
     for(let i in result)
     {
        details.push(result[i].dataValues)
