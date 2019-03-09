@@ -1233,12 +1233,22 @@ const update1 =await user.update({first_name:users.first_name,last_name:users.la
 //}
 
 })
+//---- Remove vehicle-----
+app.post('/remove-vehicle',(req,res)=>{
+    let user_id= req.body.user_id;
+    let vehicle_id =req.body.vehicle_id;
+    const Op = Sequelize.Op
+    vehicle.update({status:"UNAVAILABLE"},{where:{[Op.and]:[{user_id:user_id},{vehicle_id:vehicle_id}]}}).then((result)=>{
+        res.send("Vehicle Removed")
+    }).catch(e=>res.send(e))
+})
 
 //--- fetch vehicle of specific users ---
 app.post('/fetch-specific-user-vehicles',(req,res)=>{
     let users = req.body;
     let vehicle_details=[];
-    vehicle.findAll({where:{user_id:users.user_id},include:[{model:client}]}).then((result)=>{
+    const Op = Sequelize.Op
+    vehicle.findAll({where:{[Op.and]:[{user_id:users.user_id},{status:{[Op.ne]:"UNAVAILABLE"}}]},include:[{model:client}]}).then((result)=>{
         for(let vehicle in result)
         {
             vehicle_details.push(result[vehicle].dataValues)
