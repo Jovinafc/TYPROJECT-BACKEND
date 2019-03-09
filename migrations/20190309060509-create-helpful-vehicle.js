@@ -1,34 +1,29 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('accessory_ratings', {
+    return queryInterface.createTable('helpful_vehicles', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      feedback_id: {
+        type: Sequelize.BIGINT,
+
+      },
       user_id: {
-        type: Sequelize.BIGINT,
-          references: {
-            model:"users",
-            key:"user_id"
-          }
-      },
-      accessory_id: {
-        type: Sequelize.BIGINT,
-          references:{
-            model:"accessories",
-            key:"accessory_id"
-          }
-      },
-      rating: {
         type: Sequelize.BIGINT
       },
-      review: {
+        vehicle_id:{
+            type: Sequelize.BIGINT
+        },
+      helpful: {
         type: Sequelize.STRING
       },
-
+      not_helpful: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -40,6 +35,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('accessory_ratings');
+    return queryInterface.dropTable('helpful_vehicles');
   }
 };

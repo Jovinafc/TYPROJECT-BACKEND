@@ -30,8 +30,8 @@ module.exports = (sequelize, DataTypes) => {
     feedback.belongsTo(models.vehicle_transaction,{foreignKey:'vehicle_id'})
     feedback.belongsTo(models.user,{foreignKey:'user_id'})
       feedback.belongsTo(models.vehicle,{foreignKey:'vehicle_id'})
-
-
+    feedback.hasMany(models.helpful_accessory,{foreignKey:"feedback_id"})
+    feedback.hasMany(models.helpful_vehicle,{foreignKey:"feedback_id"})
   };
   return feedback;
 };

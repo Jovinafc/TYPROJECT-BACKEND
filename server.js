@@ -32,6 +32,9 @@ const feedback = require('./models').feedback
 const accessory_transaction = require('./models').accessory_transaction
 const vehicle_transaction = require('./models').vehicle_transaction
 const accessory_rating = require('./models').accessory_rating
+const helpful_vehicle  =require('./models').helpful_vehicle
+const helpful_accessory = require('./models').helpful_accessory
+
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -2318,7 +2321,148 @@ app.get('/get-vehicles',async(req,res)=>{
 
 })
 
+//---- Helpful  and not helpful
+app.post('/helpful-not-helpful',(req,res)=>{
+    const Op = Sequelize.Op;
+    let helpful=req.body.helpful;
+    let notHelpful=req.body.notHelpful;
+    if(req.body.type==="vehicle") {
+        if (helpful === "set") {
+            helpful_vehicle.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{feedback_id:req.body.feedback_id},{vehicle_id:req.body.vehicle_id}]}}).then((result)=>{
+                if(result===null)
+                {
+                    helpful_vehicle.create({
+                        feedback_id:req.body.feedback_id,
+                        vehicle_id:req.body.vehicle_id,
+                        user_id:req.body.user_id,
+                        helpful:true,
+                        not_helpful:false
+                    }).then(()=>{
+                        res.send("Helpful Like")
+                        return false;
+                    }).catch(e=>res.send(e))
+                }
+                else{
+                    helpful_vehicle.update({helpful:true,not_helpful:false},{where:{[Op.and]:[{user_id:req.body.user_id},{feedback_id:req.body.feedback_id},{vehicle_id:req.body.vehicle_id}]}}).then(()=>{
+                        res.send("Helpful Like")
+                        return false;
+                    }).catch(e=>res.send(e))
+                }
+            })
+        }
 
+
+        if(notHelpful==="set")
+        {
+            helpful_vehicle.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{feedback_id:req.body.feedback_id},{vehicle_id:req.body.vehicle_id}]}}).then((result)=>{
+                if(result===null)
+                {
+                    helpful_vehicle.create({
+                        feedback_id:req.body.feedback_id,
+                        vehicle_id:req.body.vehicle_id,
+                        user_id:req.body.user_id,
+                        not_helpful:true,
+                        helpful:false
+                    }).then(()=>{
+                        res.send("Not Helpful Like")
+                        return false;
+                    }).catch(e=>res.send(e))
+                }
+                else{
+                    helpful_vehicle.update({helpful:false,not_helpful:true},{where:{[Op.and]:[{user_id:req.body.user_id},{feedback_id:req.body.feedback_id},{vehicle_id:req.body.vehicle_id}]}}).then(()=>{
+                        res.send("Not Helpful Like")
+                        return false;
+                    }).catch(e=>res.send(e))
+                }
+            })
+        }
+
+
+    }
+    else if(req.body.type==="accessory") {
+        if (helpful === "set") {
+            helpful_accessory.findOne({where: {[Op.and]: [{user_id: req.body.user_id}, {feedback_id: req.body.feedback_id}, {accessory_id: req.body.accessory_id}]}}).then((result) => {
+                if (result === null) {
+                    helpful_accessory.create({
+                        feedback_id: req.body.feedback_id,
+                        accessory_id: req.body.accessory_id,
+                        user_id: req.body.user_id,
+                        helpful: true,
+                        not_helpful: false
+                    }).then(() => {
+                        res.send("Helpful Like")
+                        return false;
+                    }).catch(e => res.send(e))
+                }
+                else {
+                    helpful_accessory.update({
+                        helpful: true,
+                        not_helpful: false
+                    }, {where: {[Op.and]: [{user_id: req.body.user_id}, {feedback_id: req.body.feedback_id}, {accessory_id: req.body.accessory_id}]}}).then(() => {
+                        res.send("Helpful Like")
+                        return false;
+                    }).catch(e => res.send(e))
+                }
+            })
+        }
+
+
+        if (notHelpful === "set") {
+            helpful_accessory.findOne({where: {[Op.and]: [{user_id: req.body.user_id}, {feedback_id: req.body.feedback_id}, {accessory_id: req.body.accessory_id}]}}).then((result) => {
+                if (result === null) {
+                    helpful_accessory.create({
+                        feedback_id: req.body.feedback_id,
+                        accessory_id: req.body.accessory_id,
+                        user_id: req.body.user_id,
+                        not_helpful: true,
+                        helpful: false
+                    }).then(() => {
+                        res.send("Not Helpful Like")
+                        return false;
+                    }).catch(e => res.send(e))
+                }
+                else {
+                    helpful_accessory.update({
+                        helpful: false,
+                        not_helpful: true
+                    }, {where: {[Op.and]: [{user_id: req.body.user_id}, {feedback_id: req.body.feedback_id}, {accessory_id: req.body.accessory_id}]}}).then(() => {
+                        res.send("Not Helpful Like")
+                        return false;
+                    }).catch(e => res.send(e))
+                }
+            })
+        }
+    }
+
+
+
+})
+
+app.get('/vehicle-helpful',(req,res)=>{
+    let vehicle_id = req.query.vehicle_id;
+    let feedback_id = req.query.feedback_id;
+    let user_id = req.query.user_id;
+    const Op = Sequelize.Op
+    let display =[];
+    helpful_vehicle.findOne({where:{[Op.and]:[{vehicle_id:vehicle_id},{feedback_id:feedback_id},{user_id:user_id}]}}).then((result)=>{
+      console.log(result)
+        if(result === null)
+        {
+            return false;
+
+        }
+        display.push(result.dataValues)
+    })
+    setTimeout(function () {
+        if(display.length ===0)
+        {
+            res.send("No Likes")
+            return false;
+        }
+        res.send(display)
+    },100)
+
+})
 //--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')
