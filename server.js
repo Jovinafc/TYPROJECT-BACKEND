@@ -974,13 +974,13 @@ app.post('/update-profile-image',async (req,res)=>{
 })
 // ----- Fetch Specific Vehicle Details ----
 
-app.post('/fetch-specific-vehicle/:id',(req,res)=>{
+app.post('/fetch-specific-vehicle',(req,res)=>{
     const Op = Sequelize.Op;
-    let vehicle_id= req.params.id;
+    let vehicle_id= req.body.vehicle_id;
     let user_id=req.body.user_id;
     let sendDetails =[]
     let user_details={};
-
+    console.log(vehicle_id+ " "+user_id);
     vehicle.findOne({where:{vehicle_id:vehicle_id,user_id:{[Op.ne]:user_id}},include:[{model:owner,where:{[Op.and]:[{vehicle_id:vehicle_id}]}}]}).then((result)=>{
 
         sendDetails.push(result.dataValues);
@@ -2328,6 +2328,7 @@ app.post('/helpful-not-helpful',(req,res)=>{
     let notHelpful=req.body.notHelpful;
     if(req.body.type==="vehicle") {
         if (helpful === "set") {
+            console.log(req.body.feedback_id);
             helpful_vehicle.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{feedback_id:req.body.feedback_id},{vehicle_id:req.body.vehicle_id}]}}).then((result)=>{
                 if(result===null)
                 {
@@ -2383,6 +2384,7 @@ app.post('/helpful-not-helpful',(req,res)=>{
         if (helpful === "set") {
             helpful_accessory.findOne({where: {[Op.and]: [{user_id: req.body.user_id}, {feedback_id: req.body.feedback_id}, {accessory_id: req.body.accessory_id}]}}).then((result) => {
                 if (result === null) {
+                    console.log(req.body.feedback_id);
                     helpful_accessory.create({
                         feedback_id: req.body.feedback_id,
                         accessory_id: req.body.accessory_id,
