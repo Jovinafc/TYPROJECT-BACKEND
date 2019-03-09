@@ -1233,15 +1233,15 @@ const update1 =await user.update({first_name:users.first_name,last_name:users.la
 //}
 
 })
-//---- Remove vehicle-----
-app.post('/remove-vehicle',(req,res)=>{
-    let user_id= req.body.user_id;
-    let vehicle_id =req.body.vehicle_id;
-    const Op = Sequelize.Op
-    vehicle.update({status:"UNAVAILABLE"},{where:{[Op.and]:[{user_id:user_id},{vehicle_id:vehicle_id}]}}).then((result)=>{
-        res.send("Vehicle Removed")
-    }).catch(e=>res.send(e))
-})
+//---- Remove vehicle----- one code already exist
+// app.post('/remove-vehicle',(req,res)=>{
+//     let user_id= req.body.user_id;
+//     let vehicle_id =req.body.vehicle_id;
+//     const Op = Sequelize.Op
+//     vehicle.update({status:"UNAVAILABLE"},{where:{[Op.and]:[{user_id:user_id},{vehicle_id:vehicle_id}]}}).then((result)=>{
+//         res.send("Vehicle Removed")
+//     }).catch(e=>res.send(e))
+// })
 
 //--- fetch vehicle of specific users ---
 app.post('/fetch-specific-user-vehicles',(req,res)=>{
@@ -2218,7 +2218,7 @@ app.post('/accessory-review',(req,res)=>{
         else {
             if(result.dataValues.review === null) {
                 accessory_rating.update({review: req.body.review}, {where: {[Op.and]: [{accessory_id: req.body.accessory_id}, {user_id: req.body.user_id}]}}).then(() => {
-                    res.send('Rating Added')
+                    res.send('Review Added')
 
                 })
             }
@@ -2302,6 +2302,32 @@ app.post('/fetch-user-accessory-rating',(req,res)=>{
         res.send(display)
     },100)
 })
+
+app.get('/get-accessory',(req,res)=>{
+    let accessory_id = req.query.accessory_id;
+    let user_id = req.query.user_id;
+    const Op =Sequelize.Op;
+    let reviews =[];
+    accessory_rating.findAll({where:{accessory_id:accessory_id},include:[{model:user},{model:accessory}]}).then((result)=>{
+       for(let i in result) {
+
+           if (result[i].dataValues.review === "" ||result[i].dataValues.review === null) {
+               return false;
+           }
+           reviews.push(result[i].dataValues)
+       }
+    })
+
+    setTimeout(function () {
+        if(reviews.length===0)
+        {
+            res.send("No Reviews")
+            return false;
+        }
+        res.send(reviews)
+    },100)
+})
+
 
 // --- fetch ratings and reviews based on user_id and vehicle_id
 app.get('/get-vehicles',async(req,res)=>{
