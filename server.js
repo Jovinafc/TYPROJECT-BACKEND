@@ -1459,7 +1459,7 @@ app.post('/fetch-accessories',(req,res)=>{
 
 //---- Fetch Specific Accessory
 app.post('/fetch-specific-accessory',(req,res)=>{
-    accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((result)=>{
+    accessory.findOne({where:{accessory_id:req.body.accessory_id},include:[{model:accessory_rating}]}).then((result)=>{
         res.send(result.dataValues)
     })
 })
