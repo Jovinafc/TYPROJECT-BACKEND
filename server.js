@@ -2463,6 +2463,97 @@ app.get('/vehicle-helpful',(req,res)=>{
     },100)
 
 })
+
+//---- Count help vehicle -----
+app.get('/helpful-vehicle-count',(req,res)=>{
+    const Op = Sequelize.Op;
+    let helpful = [];
+    let notHelpful = [];
+    helpful_vehicle.findAll({where:{[Op.and]:[{vehicle_id:req.query.vehicle_id},{feedback_id:req.query.feedback_id}]}}).then((result)=>{
+        for(let i in result)
+        {
+            if(result[i].dataValues.helpful === "1") {
+                helpful.push(result[i].dataValues.helpful)
+            }
+            if(result[i].dataValues.not_helpful === "1") {
+                notHelpful.push(result[i].dataValues.not_helpful)
+            }
+            }
+
+    })
+    setTimeout(function () {
+        let countHelpful = helpful.length;
+
+        let countNotHelpful = notHelpful.length;
+        let sendDetails={
+            countHelpful,
+            countNotHelpful
+        }
+        res.send(sendDetails)
+    },100)
+})
+
+//----- Accessory Count ----
+
+app.get('/accessory-helpful',(req,res)=>{
+    let accessory_id = req.query.accessory_id;
+    let feedback_id = req.query.feedback_id;
+    let user_id = req.query.user_id;
+    const Op = Sequelize.Op
+    let display =[];
+    helpful_accessory.findOne({where:{[Op.and]:[{accessory_id:accessory_id},{feedback_id:feedback_id},{user_id:user_id}]}}).then((result)=>{
+        console.log(result)
+        if(result === null)
+        {
+            return false;
+
+        }
+        display.push(result.dataValues)
+    })
+    setTimeout(function () {
+        if(display.length ===0)
+        {
+            res.send("No Likes")
+            return false;
+        }
+        res.send(display)
+    },100)
+
+})
+
+//---- Count helpful accessory -----
+app.get('/helpful-accessory-count',(req,res)=>{
+    const Op = Sequelize.Op;
+    let helpful = [];
+    let notHelpful = [];
+    helpful_accessory.findAll({where:{[Op.and]:[{accessory_id:req.query.accessory_id},{feedback_id:req.query.feedback_id}]}}).then((result)=>{
+        for(let i in result)
+        {
+            if(result[i].dataValues.helpful === "1") {
+                helpful.push(result[i].dataValues.helpful)
+            }
+            if(result[i].dataValues.not_helpful === "1") {
+                notHelpful.push(result[i].dataValues.not_helpful)
+            }
+        }
+
+    })
+    setTimeout(function () {
+        let countHelpful = helpful.length;
+
+        let countNotHelpful = notHelpful.length;
+        let sendDetails={
+            countHelpful,
+            countNotHelpful
+        }
+        res.send(sendDetails)
+    },100)
+})
+
+
+
+
+
 //--------------
 app.listen(3001,()=>{
     console.log('Listening on port 3001')
