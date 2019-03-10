@@ -1274,14 +1274,42 @@ app.post('/fetch-vehicles-except-current-user',(req,res)=>{
     const user_id = req.body.user_id
     let collection =[]
     vehicle.findAll({where:{user_id:{[Op.ne]:user_id},status:"AVAILABLE"}}).then((result)=>{
-
+        let avg_rating=null;
         for (let i in result)
         {
+
+            let total_rating=[];
+            rating.findAll({where:{vehicle_id:result[i].dataValues.vehicle_id}}).then((rating_result)=>{
+                for(let j in rating_result)
+                {
+                    total_rating.push(rating_result[j].dataValues.rating_number);
+                }
+
+                    let count =total_rating.length;
+                    let total_sum=  total_rating.reduce(add,0)
+                    function add(a,b)
+                    {
+                        return a+b;
+                    }
+                    avg_rating = total_sum/count
+                    console.log(avg_rating)
+                collection.push({"average rating":avg_rating});
+
+            })
+            //console.log("Average rating"+avg_rating)
             collection.push(result[i].dataValues)
+
+
         }
 
-        res.send(collection)
+        setTimeout(function () {
+
+            res.send(collection)
+        },100)
+
+
     })
+
 
 })
 
@@ -1906,7 +1934,7 @@ app.post('/rating',(req,res)=>{
     })
     })
     })
-
+//for average rating of vehicles
 app.post('/rating-for-vehicle',(req,res)=>{
     let avg_rating=null;
     let total_rating=[];
