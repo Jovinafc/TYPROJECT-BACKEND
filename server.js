@@ -35,6 +35,7 @@ const accessory_rating = require('./models').accessory_rating
 const helpful_vehicle  =require('./models').helpful_vehicle
 const helpful_accessory = require('./models').helpful_accessory
 const avg_rating_vehicles = require('./models').avg_rating_vehicles
+const avg_rating_accessory = require('./models').avg_rating_accessory
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -1911,45 +1912,48 @@ app.post('/rating',async (req,res)=>{
         user_name:req.body.user_name,
         rating_number:req.body.rating_number
     }).then((result)=>{
+
+        rating.findAll({where:{vehicle_id:req.body.vehicle_id}}).then((result)=>{
+            for(let i in result)
+            {
+                total_rating.push(result[i].dataValues.rating_number);
+            }
+            setTimeout(function(){
+                let count =total_rating.length;
+                let total_sum=  total_rating.reduce(add,0)
+                function add(a,b)
+                {
+                    return a+b;
+                }
+                avg_rating = total_sum/count
+                avg_rating.toFixed(2);
+                avg_rating_vehicles.findOne({where:{vehicle_id:req.body.vehicle_id}}).then((result1)=>{
+                    if(result1!==null)
+                    {
+                        avg_rating_vehicles.update({avg_rating:avg_rating},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
+                            console.log('Avg added of vehicles')
+                        })
+                    }
+                    else{
+                        avg_rating_vehicles.create({
+                            vehicle_id:req.body.vehicle_id,
+                            avg_rating: avg_rating
+                        }).then(()=>{
+                            console.log("Avg added to vehicles")
+                        })
+                    }
+                })
+
+                // res.send('Average rating is:'+avg_rating.toFixed(2))
+            },100)
+        })
+
+
         res.send('Successfully Rated')
     })
     })
 
-   let test2= await
-       rating.findAll({where:{vehicle_id:req.body.vehicle_id}}).then((result)=>{
-           for(let i in result)
-           {
-               total_rating.push(result[i].dataValues.rating_number);
-           }
-           setTimeout(function(){
-               let count =total_rating.length;
-               let total_sum=  total_rating.reduce(add,0)
-               function add(a,b)
-               {
-                   return a+b;
-               }
-               avg_rating = total_sum/count
 
-             avg_rating_vehicles.findOne({where:{vehicle_id:req.body.vehicle_id}}).then((result1)=>{
-                 if(result1!=null)
-                 {
-                     avg_rating_vehicles.update({avg_rating:avg_rating},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
-                         console.log('Avg added of vehicles')
-                     })
-                 }
-                 else{
-                     avg_rating_vehicles.create({
-                         vehicle_id:req.body.vehicle_id,
-                         avg_rating: avg_rating
-                     }).then(()=>{
-                         console.log("Avg added to vehicles")
-                     })
-                 }
-             })
-
-               // res.send('Average rating is:'+avg_rating.toFixed(2))
-           },100)
-       })
 
 
     })
@@ -2221,8 +2225,10 @@ app.get('/fetch-vehicle-comments-and-ratings/:vehicle_id',async (req,res)=>{
 
 
 //---- accessory ratings ----
-app.post('/accessory-rating',(req,res)=>{
+app.post('/accessory-rating',async(req,res)=>{
     const Op = Sequelize.Op
+    let total_rating=[];
+    let avg_rating =null;
    accessory_rating.findOne({where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then((result)=>{
        if(result===null)
        {
@@ -2230,21 +2236,116 @@ app.post('/accessory-rating',(req,res)=>{
                user_id:req.body.user_id,
                accessory_id:req.body.accessory_id,
                rating:req.body.rating
+           }).then(()=>{
+
+
+              accessory_rating.findAll({where:{accessory_id:req.body.accessory_id}}).then((access1)=> {
+                   for (let i in access1) {
+                       total_rating.push(access1[i].dataValues.rating);
+                       console.log(access1[i].dataValues.rating)
+                   }
+                   setTimeout(function () {
+                       let count = total_rating.length;
+                       let total_sum = total_rating.reduce(add, 0)
+
+                       function add(a, b) {
+                           return a + b;
+                       }
+
+                       avg_rating = total_sum / count
+                       console.log(avg_rating)
+                       avg_rating.toFixed(2);
+                    setTimeout(function () {
+
+
+                       avg_rating_accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((accessory_details)=>{
+                           if(accessory_details !== null)
+                           {
+                               avg_rating_accessory.update({avg_rating:avg_rating},{where:{accessory_id:req.body.accessory_id}}).then(()=>{
+                                   console.log("Avg calculated")
+                               })
+                           }
+                           else
+                           {
+                               avg_rating_accessory.create({
+                                   accessory_id:req.body.accessory_id,
+                                   avg_rating:avg_rating
+                               }).then(()=>{
+                                   console.log("Avg calculated")
+                               })
+                           }
+                       })
+                   },100)
+               })
+              },100)
+
+
+
+
            })
-           res.send('Rating Made')
+           res.send('Rating Added')
        }
        else {
            if(result.dataValues.rating === null) {
                accessory_rating.update({rating: req.body.rating}, {where: {[Op.and]: [{accessory_id: req.body.accessory_id}, {user_id: req.body.user_id}]}}).then(() => {
-                   res.send('Rating Added')
+
+                   accessory_rating.findAll({where:{accessory_id:req.body.accessory_id}}).then((access1)=> {
+                       for (let i in access1) {
+                           total_rating.push(access1[i].dataValues.rating);
+                           console.log(access1[i].dataValues.rating)
+                       }
+                       setTimeout(function () {
+                           let count = total_rating.length;
+                           let total_sum = total_rating.reduce(add, 0)
+
+                           function add(a, b) {
+                               return a + b;
+                           }
+
+                           avg_rating = total_sum / count
+                           console.log(avg_rating)
+                           avg_rating.toFixed(2);
+                           setTimeout(function () {
+
+
+                               avg_rating_accessory.findOne({where:{accessory_id:req.body.accessory_id}}).then((accessory_details)=>{
+                                   if(accessory_details !== null)
+                                   {
+                                       avg_rating_accessory.update({avg_rating:avg_rating},{where:{accessory_id:req.body.accessory_id}}).then(()=>{
+                                           console.log("Avg calculated")
+                                       })
+                                   }
+                                   else
+                                   {
+                                       avg_rating_accessory.create({
+                                           accessory_id:req.body.accessory_id,
+                                           avg_rating:avg_rating
+                                       }).then(()=>{
+                                           console.log("Avg calculated")
+                                       })
+                                   }
+                               })
+                           },100)
+                       })
+                   },100)
+
+
+                   res.send('Rating Made')
 
                })
            }
            else{
                res.send('Already Rated')
+                return false;
            }
        }
+
+
    })
+
+
+
+
 
 
 })

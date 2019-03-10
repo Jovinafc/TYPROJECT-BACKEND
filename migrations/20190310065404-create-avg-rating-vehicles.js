@@ -8,7 +8,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       avg_rating: {
-        type: Sequelize.BIGINT
+        type: Sequelize.FLOAT
       },
       createdAt: {
         allowNull: false,

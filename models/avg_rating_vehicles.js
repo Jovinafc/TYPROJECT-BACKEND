@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
         type:DataTypes.BIGINT,
         primaryKey:true
     },
-    avg_rating: DataTypes.BIGINT
+    avg_rating: DataTypes.FLOAT
   }, {});
   avg_rating_vehicles.associate = function(models) {
     avg_rating_vehicles.belongsTo(models.vehicle,{foreignKey:"vehicle_id"})

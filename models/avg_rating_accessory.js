@@ -1,11 +1,14 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const avg_rating_accessory = sequelize.define('avg_rating_accessory', {
-    accessory_id: DataTypes.BIGINT,
-    avg_rating: DataTypes.BIGINT
+    accessory_id: {
+        type:DataTypes.BIGINT,
+        primaryKey:true
+    },
+    avg_rating: DataTypes.FLOAT
   }, {});
   avg_rating_accessory.associate = function(models) {
-    // associations can be defined here
+    avg_rating_accessory.belongsTo(models.accessory,{foreignKey:"accessory_id"})
   };
   return avg_rating_accessory;
 };

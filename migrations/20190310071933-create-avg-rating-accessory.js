@@ -2,17 +2,13 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('avg_rating_accessories', {
-      id: {
+        accessory_id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      accessory_id: {
-        type: Sequelize.BIGINT
-      },
       avg_rating: {
-        type: Sequelize.BIGINT
+        type: Sequelize.FLOAT
       },
       createdAt: {
         allowNull: false,
