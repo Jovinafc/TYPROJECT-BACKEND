@@ -982,7 +982,7 @@ app.post('/fetch-specific-vehicle',(req,res)=>{
     let sendDetails =[]
     let user_details={};
     console.log(vehicle_id+ " "+user_id);
-    vehicle.findOne({where:{vehicle_id:vehicle_id,user_id:{[Op.ne]:user_id}},include:[{model:owner}]}).then((result)=>{
+    vehicle.findOne({where:{vehicle_id:vehicle_id,user_id:{[Op.ne]:user_id}},include:[{model:owner},{model:avg_rating_vehicles}]}).then((result)=>{
 
         sendDetails.push(result.dataValues);
         user.findOne({where:{user_id:result.dataValues.user_id}}).then((result1)=>{
@@ -1249,7 +1249,7 @@ app.post('/fetch-specific-user-vehicles',(req,res)=>{
     let users = req.body;
     let vehicle_details=[];
     const Op = Sequelize.Op
-    vehicle.findAll({where:{[Op.and]:[{user_id:users.user_id},{status:{[Op.ne]:"UNAVAILABLE"}}]},include:[{model:client}]}).then((result)=>{
+    vehicle.findAll({where:{[Op.and]:[{user_id:users.user_id},{status:{[Op.ne]:"UNAVAILABLE"}}]},include:[{model:client},{model:avg_rating_vehicles}]}).then((result)=>{
         for(let vehicle in result)
         {
             vehicle_details.push(result[vehicle].dataValues)
@@ -2424,7 +2424,7 @@ app.post('/fetch-specific-accessory-rating-and-review-based-on-user-accessory',(
 app.post('/fetch-specific-accessory-rating-and-review',(req,res)=>{
     let details=[];
     console.log(req.body.accessory_id)
-    accessory_rating.findAll({where:{accessory_id:req.body.accessory_id},include:[{model:user}]}).then((result)=>{
+    accessory_rating.findAll({where:{accessory_id:req.body.accessory_id},include:[{model:user},{model:avg_rating_accessory}]}).then((result)=>{
         for(let i in result)
         {
             details.push(result[i].dataValues)
