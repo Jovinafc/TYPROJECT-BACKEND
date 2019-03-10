@@ -1274,31 +1274,10 @@ app.post('/fetch-vehicles-except-current-user',(req,res)=>{
     const user_id = req.body.user_id
     let collection =[]
     vehicle.findAll({where:{user_id:{[Op.ne]:user_id},status:"AVAILABLE"}}).then((result)=>{
-        let avg_rating=null;
         for (let i in result)
         {
 
-            let total_rating=[];
-            rating.findAll({where:{vehicle_id:result[i].dataValues.vehicle_id}}).then((rating_result)=>{
-                for(let j in rating_result)
-                {
-                    total_rating.push(rating_result[j].dataValues.rating_number);
-                }
-
-                    let count =total_rating.length;
-                    let total_sum=  total_rating.reduce(add,0)
-                    function add(a,b)
-                    {
-                        return a+b;
-                    }
-                    avg_rating = total_sum/count
-                    console.log(avg_rating)
-                collection.push({"average rating":avg_rating});
-
-            })
-            //console.log("Average rating"+avg_rating)
             collection.push(result[i].dataValues)
-
 
         }
 
@@ -1914,9 +1893,9 @@ app.post('/cancel-booking',(req,res)=>{
 })
 
 //---------Rating ----
-app.post('/rating',(req,res)=>{
+app.post('/rating',async (req,res)=>{
     const Op = Sequelize.Op
-    rating.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((data)=>{
+  let test=await  rating.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((data)=>{
         if(data!==null)
         {
             res.send('You have Already Rated this Vehicle');
