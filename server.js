@@ -34,7 +34,7 @@ const vehicle_transaction = require('./models').vehicle_transaction
 const accessory_rating = require('./models').accessory_rating
 const helpful_vehicle  =require('./models').helpful_vehicle
 const helpful_accessory = require('./models').helpful_accessory
-
+const avg_rating_vehicles = require('./models').avg_rating_vehicles
 //----middleware
 const {authenticate} = require('./middleware/authenticate');
 
@@ -1269,11 +1269,11 @@ app.post('/fetch-specific-vehicles-based-on-status',(req,res)=>{
 
 
 //----- fetch all users vehicle except current
-app.post('/fetch-vehicles-except-current-user',(req,res)=>{
+    app.post('/fetch-vehicles-except-current-user',(req,res)=>{
     const Op = Sequelize.Op
     const user_id = req.body.user_id
     let collection =[]
-    vehicle.findAll({where:{user_id:{[Op.ne]:user_id},status:"AVAILABLE"}}).then((result)=>{
+    vehicle.findAll({where:{user_id:{[Op.ne]:user_id},status:"AVAILABLE"},include:[{model:avg_rating_vehicles,attributes:['avg_rating']}]}).then((result)=>{
         for (let i in result)
         {
 
@@ -1895,6 +1895,8 @@ app.post('/cancel-booking',(req,res)=>{
 //---------Rating ----
 app.post('/rating',async (req,res)=>{
     const Op = Sequelize.Op
+    let avg_rating=null;
+    let total_rating=[];
   let test=await  rating.findOne({where:{[Op.and]:[{user_id:req.body.user_id},{vehicle_id:req.body.vehicle_id}]}}).then((data)=>{
         if(data!==null)
         {
@@ -1912,6 +1914,44 @@ app.post('/rating',async (req,res)=>{
         res.send('Successfully Rated')
     })
     })
+
+   let test2= await
+       rating.findAll({where:{vehicle_id:req.body.vehicle_id}}).then((result)=>{
+           for(let i in result)
+           {
+               total_rating.push(result[i].dataValues.rating_number);
+           }
+           setTimeout(function(){
+               let count =total_rating.length;
+               let total_sum=  total_rating.reduce(add,0)
+               function add(a,b)
+               {
+                   return a+b;
+               }
+               avg_rating = total_sum/count
+
+             avg_rating_vehicles.findOne({where:{vehicle_id:req.body.vehicle_id}}).then((result1)=>{
+                 if(result1!=null)
+                 {
+                     avg_rating_vehicles.update({avg_rating:avg_rating},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{
+                         console.log('Avg added of vehicles')
+                     })
+                 }
+                 else{
+                     avg_rating_vehicles.create({
+                         vehicle_id:req.body.vehicle_id,
+                         avg_rating: avg_rating
+                     }).then(()=>{
+                         console.log("Avg added to vehicles")
+                     })
+                 }
+             })
+
+               // res.send('Average rating is:'+avg_rating.toFixed(2))
+           },100)
+       })
+
+
     })
 //for average rating of vehicles
 app.post('/rating-for-vehicle',(req,res)=>{

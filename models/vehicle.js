@@ -31,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
 
       vehicle.hasMany(models.vehicle_transaction,{foreignKey:'vehicle_id'})
       vehicle.hasMany(models.accessory_transaction,{foreignKey:'vehicle_id'})
+      vehicle.hasMany(models.avg_rating_vehicles,{foreignKey:"vehicle_id"})
 
 
   };
