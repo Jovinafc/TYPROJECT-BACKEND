@@ -2407,6 +2407,7 @@ app.post('/fetch-accessory-ratings-and-reviews',async (req,res)=>{
 
 // fetch specific accessory review and rating based on user_id and vehicle_id
 app.post('/fetch-specific-accessory-rating-and-review-based-on-user-accessory',(req,res)=>{
+    const Op = Sequelize.Op;
     let details=[];
     accessory_rating.findAll({where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then((result)=>{
         for(let i in result)
