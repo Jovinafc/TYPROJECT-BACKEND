@@ -2136,6 +2136,7 @@ app.get('/filter1',(req,res)=>{
         host:'localhost',
         dialect:'mysql'
     });
+    let user_id=req.query.user_id
 
     let typeOfService=null
     let typeOfService1=null;
@@ -2310,7 +2311,7 @@ app.get('/filter1',(req,res)=>{
             select_state1="registration_state!='null'"
         }
 
-        if(req.query.pricemin !== '' && req.query.pricemax !='')
+        if(req.query.pricemin !== 0 && req.query.pricemax !==0)
         {
             pricemin=req.query.pricemin
             pricemax = req.query.pricemax
@@ -2326,7 +2327,7 @@ app.get('/filter1',(req,res)=>{
     //     res.send(price1)
     // })
 
-    sequelize.query(`SELECT * from vehicle where ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}` ,{ type: sequelize.QueryTypes.SELECT}).then((result)=>{
+    sequelize.query(`SELECT * from vehicle,avg_rating_vehicles where  vehicle.vehicle_id=avg_rating_vehicles.vehicle_id and user_id!=${user_id} and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}` ,{ type: sequelize.QueryTypes.SELECT}).then((result)=>{
 
             console.log(result)
 
