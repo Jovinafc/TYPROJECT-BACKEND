@@ -2311,7 +2311,7 @@ app.get('/filter1',(req,res)=>{
             select_state1="registration_state!='null'"
         }
 
-        if(req.query.pricemin !== 0 && req.query.pricemax !==0)
+        if(req.query.pricemin !== "0" && req.query.pricemax !== "0")
         {
             pricemin=req.query.pricemin
             pricemax = req.query.pricemax
