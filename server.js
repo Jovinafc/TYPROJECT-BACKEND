@@ -564,7 +564,7 @@ app.get('/fetch-year',(req,res)=>{
 
 //---- Fetch registration-state -----------
 app.get('/fetch-registration-state',(req,res)=>{
-    var registration_state=["Andhra Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Karnataka","Maharashtra"]
+    var registration_state=["Goa","Gujarat","Maharashtra","Pune"]
     res.send(registration_state)
 })
 
@@ -2129,18 +2129,239 @@ let sendDetails={
 },100)
 })
 
+
+//-----filter using raw queries ---
+app.get('/filter1',(req,res)=>{
+    const sequelize = new Sequelize('test','root','root',{
+        host:'localhost',
+        dialect:'mysql'
+    });
+
+    let typeOfService=null
+    let typeOfService1=null;
+
+    let vehicle_type=null;
+    let vehicle_type1=null;
+
+    let fuel_type = null;
+    let fuel_type4=null;
+
+
+
+    let select_state = null;
+    let select_state1=null;
+
+    let km_driven=null;
+    let km_driven1=null;
+
+    let pricemin = null;
+    let pricemax = null;
+    let price1 = null;
+
+    if(req.query.type_of_service !== '')
+    {
+        typeOfService=req.query.type_of_service.split(',')
+            let typeOfServiceCheck=typeOfService.toString()
+        if(typeOfServiceCheck ==="Rent")
+        {
+            typeOfService1="price_per_day!='null'"
+        }
+        else if(typeOfServiceCheck ==="Sale")
+        {
+            typeOfService1="price!='null'"
+        }
+        else if(typeOfService.toString() ==="Rent,Sale" || typeOfService.toString() ==="Rent,Sale")
+        {
+            typeOfService1 ="price_per_day!='null' or price!='null'"
+        }
+    }
+    else {
+        typeOfService1="price_per_day!='null' or price!='null'"
+    }
+
+    if(req.query.vehicle_type !== '')
+    {
+        vehicle_type=req.query.vehicle_type.split(',')
+        let vehicle_type_check = vehicle_type.toString();
+        if(vehicle_type_check==="Two-Wheelers")
+        {
+            vehicle_type1="vehicle_type='Two-Wheelers'"
+        }
+        else if(vehicle_type_check ==="Four-Wheelers"){
+            vehicle_type1="vehicle_type='Four-Wheelers'"
+        }
+        else if(vehicle_type.toString() ==="Two-Wheelers,Four_Wheelers" || vehicle_type.toString() ==="Four-Wheelers,Two_Wheelers")
+        {
+            vehicle_type1="vehicle_type='Two-Wheelers' or vehicle_type='Four-Wheelers'"
+        }
+
+    }
+    else
+    {
+        vehicle_type1="vehicle_type='Two-Wheelers' or vehicle_type='Four-Wheelers'"
+    }
+
+    if(req.query.fuel_type !== '') {
+        fuel_type = req.query.fuel_type.split(',')
+        let fuel_type_check = fuel_type.toString();
+        if (fuel_type_check==="Petrol") {
+            fuel_type4 = "fuel_type='Petrol'"
+        }
+        else if (fuel_type_check==="Diesel") {
+            fuel_type4 = "fuel_type='Diesel'"
+        }
+        else if (fuel_type_check==="CNG") {
+            fuel_type4 = "fuel_type='CNG'"
+        }
+
+        else if (fuel_type_check === "Petrol,Diesel" || fuel_type_check === "Diesel,Petrol") {
+            fuel_type4 = "fuel_type='Petrol' or fuel_type='Diesel'"
+        }
+        else if (fuel_type_check === "Petrol,CNG" || fuel_type_check === "CNG,Petrol") {
+            fuel_type4 = "fuel_type='Petrol' or fuel_type='CNG'"
+        }
+        else if (fuel_type_check === "Diesel,CNG" || fuel_type_check === "CNG,Diesel") {
+            fuel_type4 = "fuel_type='Diesel' or fuel_type='CNG'"
+        }
+        else
+        {
+
+                fuel_type4 = "fuel_type!='null'"
+
+            }
+
+    }
+    else
+        {
+            fuel_type4="fuel_type!='null'"
+        }
+        if(req.query.select_state !== '')
+        {
+            select_state= req.query.select_state.split(',')
+            let select_state_check = select_state.sort().toString();
+
+            if(select_state_check ==="Goa")
+            {
+                select_state1="registration_state='Goa'"
+            }
+            else if(select_state_check ==="Gujarat")
+            {
+                select_state1="registration_state='Gujarat'"
+            }
+            else if(select_state_check ==="Maharashtra")
+            {
+                select_state1="registration_state='Maharashtra'"
+            }
+            else if(select_state_check ==="Pune")
+            {
+                select_state1="registration_state='Pune'"
+            }
+            else if(select_state_check==="Goa,Gujarat")
+            {
+                select_state1="registration_state='Goa' or registration_state='Gujarat'"
+            }
+            else if(select_state_check==="Goa,Maharashtra")
+            {
+                select_state1="registration_state='Goa' or registration_state='Maharashtra'"
+            }
+            else if(select_state_check==="Goa,Pune")
+            {
+                select_state1="registration_state='Goa' or registration_state='Pune'"
+            }
+            else if(select_state_check==="Gujarat,Maharashtra")
+            {
+                select_state1="registration_state='Gujarat' or registration_state='Maharashtra'"
+
+            }
+            else if(select_state_check==="Gujarat,Pune")
+            {
+                select_state1="registration_state='Gujarat' or registration_state='Pune'"
+
+            }
+            else if(select_state_check==="Maharashtra,Pune")
+            {
+                select_state1="registration_state='Maharashtra' or registration_state='Pune'"
+
+            }
+            else if(select_state_check==="Goa,Gujarat,Maharashtra")
+            {
+                select_state1 ="registration_state='Maharashtra' or registration_state='Goa' or registration_state='Gujarat'"
+            }
+            else if(select_state_check==="Goa,Gujarat,Pune")
+            {
+                select_state1 ="registration_state='Pune' or registration_state='Goa' or registration_state='Gujarat'"
+
+            }
+            else if(select_state_check==="Goa,Maharashtra,Pune"){
+                select_state1 ="registration_state='Pune' or registration_state='Goa' or registration_state='Maharashtra'"
+
+            }
+            else if(select_state_check==="Gujarat,Maharashtra,Pune"){
+                select_state1 ="registration_state='Pune' or registration_state='Maharashtra' or registration_state='Gujarat'"
+
+            }
+            else {
+                select_state1="registration_state!='null'"
+            }
+
+
+        }
+        else{
+            select_state1="registration_state!='null'"
+        }
+
+        if(req.query.pricemin !== '' && req.query.pricemax !='')
+        {
+            pricemin=req.query.pricemin
+            pricemax = req.query.pricemax
+            price1=`price between ${pricemin} and ${pricemax} or price_per_day between ${pricemin} and ${pricemax}`
+        }
+        else
+        {
+            price1="price!='null' or price_per_day!='null'"
+        }
+
+
+    // setTimeout(function () {
+    //     res.send(price1)
+    // })
+
+    sequelize.query(`SELECT * from vehicle where ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}` ,{ type: sequelize.QueryTypes.SELECT}).then((result)=>{
+
+            console.log(result)
+
+        res.send(result)
+    })
+})
+
+
+
+
 //--- Filter ---
 app.get('/filter',(req,res)=>{
     const Op = Sequelize.Op
-    let typeOfService=null;
+    let typeOfService=null
+    let typeOfService1=null;
+
     let vehicle_type=null;
     let fuel_type = null;
     let select_state = null;
     let km_driven=null;
     let price = null;
-    if(req.query.type_of_service !== undefined)
+    if(req.query.type_of_service !== '')
     {
          typeOfService=req.query.type_of_service.split(',')
+         if(typeOfService[0]==="Rent" || typeOfService[1]==="Rent")
+         {
+             typeOfService1="price_per_day"
+         }
+         else
+         {
+             typeOfService1="price"
+         }
+    }
+    else {
+        typeOfService1=['price','price_per_day']
     }
      if(req.query.vehicle_type !== undefined)
     {
@@ -2166,13 +2387,20 @@ app.get('/filter',(req,res)=>{
     }
 
 
-        vehicle.findAll({where:{[Op.and]:[{vehicle_type:{[Op.or]:vehicle_type}},{fuel_type:{[Op.or]:fuel_type}},{registration_state:{[Op.or]:select_state}}]}}).then((result)=>{
-            for(let i in result)
-            {
-                console.log(result[i].dataValues)
-            }
-            res.send('worked')
-        })
+
+
+        // vehicle.findAll({where:{[Op.and]:[{vehicle_type:{[Op.or]:vehicle_type}},{fuel_type:{[Op.or]:fuel_type}},{registration_state:{[Op.or]:select_state}}]}}).then((result)=>{
+        //     for(let i in result)
+        //     {
+        //         console.log(result[i].dataValues)
+        //     }
+
+    setTimeout(function () {
+        console.log(typeOfService)
+        res.send('worked')
+
+    },100)
+        // })
 
 
 
