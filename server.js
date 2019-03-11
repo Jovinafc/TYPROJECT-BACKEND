@@ -1455,7 +1455,7 @@ app.post('/confirm-payment',(req,res)=>{
 //------ Fetch All Accessories
 app.post('/fetch-accessories',(req,res)=>{
     let result_array =[];
-    accessory.findAll().then((result)=>{
+    accessory.findAll({include:[{model:avg_rating_accessory}]}).then((result)=>{
        for (let i in result)
        {
            result_array.push(result[i].dataValues)
