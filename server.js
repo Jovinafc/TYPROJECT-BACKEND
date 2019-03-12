@@ -2140,7 +2140,7 @@ app.get('/filter1',(req,res)=>{
     let user_id=req.query.user_id
     if(req.query.user_id ==="")
     {
-        user_id="user_id!='null'"
+        user_id="'null'"
     }
    
 
@@ -2222,13 +2222,13 @@ app.get('/filter1',(req,res)=>{
         }
 
         else if (fuel_type_check === "Petrol,Diesel" || fuel_type_check === "Diesel,Petrol") {
-            fuel_type4 = "fuel_type='Petrol' or fuel_type='Diesel'"
+            fuel_type4 = "fuel_type in('Petrol','Diesel')"
         }
         else if (fuel_type_check === "Petrol,CNG" || fuel_type_check === "CNG,Petrol") {
-            fuel_type4 = "fuel_type='Petrol' or fuel_type='CNG'"
+            fuel_type4 = "fuel_type in('Petrol','CNG')"
         }
         else if (fuel_type_check === "Diesel,CNG" || fuel_type_check === "CNG,Diesel") {
-            fuel_type4 = "fuel_type='Diesel' or fuel_type='CNG'"
+            fuel_type4 = "fuel_type in('Diesel','CNG')"
         }
         else
         {
@@ -2265,46 +2265,46 @@ app.get('/filter1',(req,res)=>{
             }
             else if(select_state_check==="Goa,Gujarat")
             {
-                select_state1="registration_state='Goa' or registration_state='Gujarat'"
+                select_state1="registration_state in('Goa','Gujarat')"
             }
             else if(select_state_check==="Goa,Maharashtra")
             {
-                select_state1="registration_state='Goa' or registration_state='Maharashtra'"
+                select_state1="registration_state in('Goa','Maharashtra')"
             }
             else if(select_state_check==="Goa,Pune")
             {
-                select_state1="registration_state='Goa' or registration_state='Pune'"
+                select_state1="registration_state in('Goa','Pune')"
             }
             else if(select_state_check==="Gujarat,Maharashtra")
             {
-                select_state1="registration_state='Gujarat' or registration_state='Maharashtra'"
+                select_state1="registration_state in('Gujarat','Maharashtra')"
 
             }
             else if(select_state_check==="Gujarat,Pune")
             {
-                select_state1="registration_state='Gujarat' or registration_state='Pune'"
+                select_state1="registration_state in('Gujarat','Pune')"
 
             }
             else if(select_state_check==="Maharashtra,Pune")
             {
-                select_state1="registration_state='Maharashtra' or registration_state='Pune'"
+                select_state1="registration_state in('Maharashtra','Pune')"
 
             }
             else if(select_state_check==="Goa,Gujarat,Maharashtra")
             {
-                select_state1 ="registration_state='Maharashtra' or registration_state='Goa' or registration_state='Gujarat'"
+                select_state1 ="registration_state in('Maharashtra','Goa','Gujarat')"
             }
             else if(select_state_check==="Goa,Gujarat,Pune")
             {
-                select_state1 ="registration_state='Pune' or registration_state='Goa' or registration_state='Gujarat'"
+                select_state1 ="registration_state in('Pune','Goa','Gujarat')"
 
             }
             else if(select_state_check==="Goa,Maharashtra,Pune"){
-                select_state1 ="registration_state='Pune' or registration_state='Goa' or registration_state='Maharashtra'"
+                select_state1 ="registration_state in('Pune','Goa','Maharashtra')"
 
             }
             else if(select_state_check==="Gujarat,Maharashtra,Pune"){
-                select_state1 ="registration_state='Pune' or registration_state='Maharashtra' or registration_state='Gujarat'"
+                select_state1 ="registration_state in('Pune','Maharashtra','Gujarat')"
 
             }
             else {
