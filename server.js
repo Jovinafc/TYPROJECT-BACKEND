@@ -2176,11 +2176,11 @@ app.get('/filter1',(req,res)=>{
         }
         else if(typeOfService.toString() ==="Rent,Sale" || typeOfService.toString() ==="Rent,Sale")
         {
-            typeOfService1 ="price_per_day!='null' or price!='null'"
+            typeOfService1 ="vehicle.vehicle_id!='null'"
         }
     }
     else {
-        typeOfService1="price_per_day!='null' or price!='null'"
+        typeOfService1="vehicle.vehicle_id!='null'"
     }
 
     if(req.query.vehicle_type !== '')
@@ -2196,13 +2196,13 @@ app.get('/filter1',(req,res)=>{
         }
         else if(vehicle_type.toString() ==="Two-Wheelers,Four_Wheelers" || vehicle_type.toString() ==="Four-Wheelers,Two_Wheelers")
         {
-            vehicle_type1="vehicle_type='Two-Wheelers' or vehicle_type='Four-Wheelers'"
+            vehicle_type1="vehicle.vehicle_type!='null'"
         }
 
     }
     else
     {
-        vehicle_type1="vehicle_type='Two-Wheelers' or vehicle_type='Four-Wheelers'"
+        vehicle_type1="vehicle.vehicle_type!='null'"
     }
 
     if(req.query.fuel_type !== '') {
@@ -2351,7 +2351,7 @@ app.get('/filter1',(req,res)=>{
 
     // sequelize.query(`SELECT vehicle.vehicle_id, vehicle.user_id, vehicle.vehicle_type, vehicle.brand, vehicle.model, vehicle.fuel_type, vehicle.year, vehicle.registration_state, vehicle.km_driven, vehicle.number_plate, vehicle.price_per_day, vehicle.description, vehicle.image, vehicle.documents, vehicle.price, vehicle.status, vehicle.createdAt, vehicle.updatedAt, avg_rating_vehicles.vehicle_id AS avg_rating_vehicles.vehicle_id, avg_rating_vehicles.avg_rating AS avg_rating_vehicles.avg_rating FROM vehicle AS vehicle LEFT OUTER JOIN avg_rating_vehicles AS avg_rating_vehicles ON vehicle.vehicle_id = avg_rating_vehicles.vehicle_id WHERE   vehicle.status = 'AVAILABLE' and vehicle.user_id!='${user_id}' and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}` ,{ type: sequelize.QueryTypes.SELECT}).then((result)=>{
     let query="SELECT `vehicle`.`vehicle_id`, `vehicle`.`user_id`, `vehicle`.`vehicle_type`, `vehicle`.`brand`, `vehicle`.`model`, `vehicle`.`fuel_type`, `vehicle`.`year`, `vehicle`.`registration_state`, `vehicle`.`km_driven`, `vehicle`.`number_plate`, `vehicle`.`price_per_day`, `vehicle`.`description`, `vehicle`.`image`, `vehicle`.`documents`, `vehicle`.`price`, `vehicle`.`status`, `vehicle`.`createdAt`, `vehicle`.`updatedAt`, `avg_rating_vehicles`.`vehicle_id` AS `avg_rating_vehicles.vehicle_id`, `avg_rating_vehicles`.`avg_rating` AS `avg_rating_vehicles.avg_rating` FROM `vehicle` AS `vehicle` LEFT OUTER JOIN `avg_rating_vehicles` AS `avg_rating_vehicles` ON `vehicle`.`vehicle_id` = `avg_rating_vehicles`.`vehicle_id` WHERE   `vehicle`.`status` = 'AVAILABLE' "
-    sequelize.query(`${query} and vehicle.user_id!=${user_id} and ${typeOfService1} and ${vehicle_type1}and ${fuel_type4} and ${select_state1} and ${price1}`,{type:sequelize.QueryTypes.SELECT}).then((result)=>{
+    sequelize.query(`${query} and vehicle.user_id!=${user_id} and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}`,{type:sequelize.QueryTypes.SELECT}).then((result)=>{
             console.log(result)
 
         res.send(result)
