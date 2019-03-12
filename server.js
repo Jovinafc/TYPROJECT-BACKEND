@@ -2315,11 +2315,30 @@ app.get('/filter1',(req,res)=>{
         {
             pricemin=req.query.pricemin
             pricemax = req.query.pricemax
-            price1=`price between ${pricemin} and ${pricemax} or price_per_day between ${pricemin} and ${pricemax}`
+            if(req.query.type_of_service ==="Rent")
+            {
+                price1=`price_per_day between ${pricemin} and ${pricemax}`
+            }
+            else if(req.query.type_of_service ==="Sale") {
+                price1=`price between ${pricemin} and ${pricemax}`
+            }
+
+        }
+        else if(req.query.pricemin==="0" && req.query.pricemax!=="0")
+        {
+            pricemin=req.query.pricemin
+            pricemax = req.query.pricemax
+            if(req.query.type_of_service ==="Rent")
+            {
+                price1=`price_per_day between ${pricemin} and ${pricemax}`
+            }
+            else if(req.query.type_of_service ==="Sale") {
+                price1=`price between ${pricemin} and ${pricemax}`
+            }
         }
         else
         {
-            price1="price!='null' or price_per_day!='null'"
+            price1="user_id!='null'"
         }
 
 
@@ -2327,8 +2346,9 @@ app.get('/filter1',(req,res)=>{
     //     res.send(price1)
     // })
 
-    sequelize.query(`SELECT * from vehicle,avg_rating_vehicles where  vehicle.vehicle_id=avg_rating_vehicles.vehicle_id and user_id!=${user_id} and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}` ,{ type: sequelize.QueryTypes.SELECT}).then((result)=>{
-
+    // sequelize.query(`SELECT vehicle.vehicle_id, vehicle.user_id, vehicle.vehicle_type, vehicle.brand, vehicle.model, vehicle.fuel_type, vehicle.year, vehicle.registration_state, vehicle.km_driven, vehicle.number_plate, vehicle.price_per_day, vehicle.description, vehicle.image, vehicle.documents, vehicle.price, vehicle.status, vehicle.createdAt, vehicle.updatedAt, avg_rating_vehicles.vehicle_id AS avg_rating_vehicles.vehicle_id, avg_rating_vehicles.avg_rating AS avg_rating_vehicles.avg_rating FROM vehicle AS vehicle LEFT OUTER JOIN avg_rating_vehicles AS avg_rating_vehicles ON vehicle.vehicle_id = avg_rating_vehicles.vehicle_id WHERE   vehicle.status = 'AVAILABLE' and vehicle.user_id!='${user_id}' and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}` ,{ type: sequelize.QueryTypes.SELECT}).then((result)=>{
+    let query="SELECT `vehicle`.`vehicle_id`, `vehicle`.`user_id`, `vehicle`.`vehicle_type`, `vehicle`.`brand`, `vehicle`.`model`, `vehicle`.`fuel_type`, `vehicle`.`year`, `vehicle`.`registration_state`, `vehicle`.`km_driven`, `vehicle`.`number_plate`, `vehicle`.`price_per_day`, `vehicle`.`description`, `vehicle`.`image`, `vehicle`.`documents`, `vehicle`.`price`, `vehicle`.`status`, `vehicle`.`createdAt`, `vehicle`.`updatedAt`, `avg_rating_vehicles`.`vehicle_id` AS `avg_rating_vehicles.vehicle_id`, `avg_rating_vehicles`.`avg_rating` AS `avg_rating_vehicles.avg_rating` FROM `vehicle` AS `vehicle` LEFT OUTER JOIN `avg_rating_vehicles` AS `avg_rating_vehicles` ON `vehicle`.`vehicle_id` = `avg_rating_vehicles`.`vehicle_id` WHERE   `vehicle`.`status` = 'AVAILABLE' "
+    sequelize.query(`${query} and vehicle.user_id!=${user_id} and ${typeOfService1} and ${fuel_type4} and ${select_state1} and ${price1}`,{type:sequelize.QueryTypes.SELECT}).then((result)=>{
             console.log(result)
 
         res.send(result)
