@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
 accessory_rating.belongsTo(models.accessory,{foreignKey:"accessory_id"})
       accessory_rating.belongsTo(models.user,{foreignKey: "user_id"})
  accessory_rating.hasMany(models.helpful_accessory,{foreignKey:"feedback_id"})
+ accessory_rating.hasMany(models.avg_rating_accessory,{foreignKey:"accessory_id"})
   };
   return accessory_rating;
 };
