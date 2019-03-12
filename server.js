@@ -2137,7 +2137,10 @@ app.get('/filter1',(req,res)=>{
         dialect:'mysql'
     });
     let user_id=req.query.user_id
-
+    if(req.query.user_id ==="")
+    {
+        user_id="'null'"
+    }
     let typeOfService=null
     let typeOfService1=null;
 
