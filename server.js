@@ -2136,11 +2136,14 @@ app.get('/filter1',(req,res)=>{
         host:'localhost',
         dialect:'mysql'
     });
+   
     let user_id=req.query.user_id
     if(req.query.user_id ==="")
     {
-        user_id="'null'"
+        user_id="user_id!='null'"
     }
+   
+
     let typeOfService=null
     let typeOfService1=null;
 
@@ -2174,7 +2177,7 @@ app.get('/filter1',(req,res)=>{
         {
             typeOfService1="price!='null'"
         }
-        else if(typeOfService.toString() ==="Rent,Sale" || typeOfService.toString() ==="Rent,Sale")
+        else if(typeOfService.toString() ==="Rent,Sale" || typeOfService.toString() ==="Sale,Rent")
         {
             typeOfService1 ="vehicle.vehicle_id!='null'"
         }
@@ -2194,7 +2197,7 @@ app.get('/filter1',(req,res)=>{
         else if(vehicle_type_check ==="Four-Wheelers"){
             vehicle_type1="vehicle_type='Four-Wheelers'"
         }
-        else if(vehicle_type.toString() ==="Two-Wheelers,Four_Wheelers" || vehicle_type.toString() ==="Four-Wheelers,Two_Wheelers")
+        else if(vehicle_type.toString() ==="Two-Wheelers,Four-Wheelers" || vehicle_type.toString() ==="Four-Wheelers,Two-Wheelers")
         {
             vehicle_type1="vehicle.vehicle_type!='null'"
         }
