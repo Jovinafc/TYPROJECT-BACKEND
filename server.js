@@ -629,7 +629,7 @@ try {
             price: vehicles.price,
             price_per_day: vehicles.price_per_day,
             image: imageURL,
-            documents: vehicle.documents,
+            documents: documentURL,
             status: 'AVAILABLE'
         }).then((result) => {
             console.log('Data Inserted');
@@ -1216,6 +1216,13 @@ app.post('/delete-account',async (req,res)=>{
 //------ Update User Profile
 app.post('/update-user-profile',async (req,res)=>{
 let users = req.body.users;
+const update2 = await user.findOne({where:{user_id:user_id}}).then((result1)=>{
+   if(result1.dataValues.documents!==null)
+   {
+    clientURL =result1.dataValues.documents 
+   }
+})
+
 const update1 =await user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
     state:users.state,city:users.city,pincode:users.pincode,documents:clientURL,bank_account_no:users.bank_account_no
 },{where:
@@ -1467,7 +1474,7 @@ app.post('/fetch-accessories',(req,res)=>{
 
 //---- Fetch Specific Accessory
 app.post('/fetch-specific-accessory',(req,res)=>{
-    accessory.findOne({where:{accessory_id:req.body.accessory_id},include:[{model:accessory_rating}]}).then((result)=>{
+    accessory.findOne({where:{accessory_id:req.body.accessory_id},include:[{model:accessory_rating},{model:avg_rating_accessory}]}).then((result)=>{
         res.send(result.dataValues)
     })
 })
@@ -2484,7 +2491,7 @@ app.post('/accessory-rating',async(req,res)=>{
     const Op = Sequelize.Op
     let total_rating=[];
     let avg_rating =null;
-   accessory_rating.findOne({where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]}}).then((result)=>{
+   accessory_rating.findOne({where:{[Op.and]:[{accessory_id:req.body.accessory_id},{user_id:req.body.user_id}]},include:[{model:avg_rating_accessory}]}).then((result)=>{
        if(result===null)
        {
            accessory_rating.create({
