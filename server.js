@@ -339,18 +339,18 @@ app.post('/clientImage',(req,res)=>{
 //-----Sign Up Route -------------
 app.post('/sign-up',async (req,res)=>{
 
-        let hashedPassword='';
-        var users = req.body.users;
+    let hashedPassword='';
+    var users = req.body.users;
 
-        const saltRounds = 10;
+    const saltRounds = 10;
 
-        //------------------------ hashing password ---------------
-     const passwordCreation=await bcrypt.hash(users.password, saltRounds).then((result) => {
-             hashedPassword = result;
+    //------------------------ hashing password ---------------
+    const passwordCreation=await bcrypt.hash(users.password, saltRounds).then((result) => {
+        hashedPassword = result;
 
-        })
+    })
 
-        //--------------Storing data in Database ------------------
+    //--------------Storing data in Database ------------------
     const dataStoring = await user.create({
         first_name:users.first_name,
         last_name:users.last_name,
@@ -364,10 +364,10 @@ app.post('/sign-up',async (req,res)=>{
     }).catch(e=>
     {
         res.status(403).send(e)
-    console.log(e)
+        console.log(e)
     })
 
-    
+
 
 
 
@@ -788,7 +788,7 @@ app.post('/rent-now',async (req,res)=>{
         mobile_no:user_details[0].phone_number,
         email:user_details[0].email,
         DOB:user_details[0].DOB,
-        //documents:clientURL
+        documents:imageURL
 
     }).then((result3)=>{
         client_details.push(result3.dataValues)
@@ -970,9 +970,38 @@ app.post('/update-profile-image',async (req,res)=>{
 
 
 
+})
+//update user document
+app.post('/update-profile-document',async (req,res)=>{
+
+    const profileImage1= await user.update({documents:documentURL},{where:{user_id:req.body.user_id}}).then((result)=>{
+
+
+        const deleteImage=()=> {
+
+        }
+        deleteImage();
+        res.send('Document Image Updated')
+    }).catch(e=>res.send(e))
+
 
 
 })
+// remove user document
+app.post('/remove-user-document',(req,res)=>{
+    user.update({documents:null},{where:{user_id:req.body.user_id}}).then((result)=>{
+        res.send('User Document Removed')
+    }).catch(e=>res.send(e))
+})
+
+//update vehicle image
+app.post('/update-vehicle-image',(req,res)=>{
+    vehicle.update({image:imageURL},{where:{vehicle_id:req.body.vehicle_id}}).then((result)=>{
+        res.send("Vehicle Image Updated")
+    })
+})
+
+
 // ----- Fetch Specific Vehicle Details ----
 
 app.post('/fetch-specific-vehicle',(req,res)=>{
@@ -2354,13 +2383,7 @@ app.get('/filter1',(req,res)=>{
             price1="user_id!='null'"
         }
 
-
-    // setTimeout(function () {
-    //     res.send(price1)
-    // })
-
-    // sequelize.query(`SELECT vehicle.vehicle_id, vehicle.user_id, vehicle.vehicle_type, vehicle.brand, vehicle.model, vehicle.fuel_type, vehicle.year, vehicle.registration_state, vehicle.km_driven, vehicle.number_plate, vehicle.price_per_day, vehicle.description, vehicle.image, vehicle.documents, vehicle.price, vehicle.status, vehicle.createdAt, vehicle.updatedAt, avg_rating_vehicles.vehicle_id AS avg_rating_vehicles.vehicle_id, avg_rating_vehicles.avg_rating AS avg_rating_vehicles.avg_rating FROM vehicle AS vehicle LEFT OUTER JOIN avg_rating_vehicles AS avg_rating_vehicles ON vehicle.vehicle_id = avg_rating_vehicles.vehicle_id WHERE   vehicle.status = 'AVAILABLE' and vehicle.user_id!='${user_id}' and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}` ,{ type: sequelize.QueryTypes.SELECT}).then((result)=>{
-    let query="SELECT `vehicle`.`vehicle_id`, `vehicle`.`user_id`, `vehicle`.`vehicle_type`, `vehicle`.`brand`, `vehicle`.`model`, `vehicle`.`fuel_type`, `vehicle`.`year`, `vehicle`.`registration_state`, `vehicle`.`km_driven`, `vehicle`.`number_plate`, `vehicle`.`price_per_day`, `vehicle`.`description`, `vehicle`.`image`, `vehicle`.`documents`, `vehicle`.`price`, `vehicle`.`status`, `vehicle`.`createdAt`, `vehicle`.`updatedAt`, `avg_rating_vehicles`.`vehicle_id` AS `avg_rating_vehicles.vehicle_id`, `avg_rating_vehicles`.`avg_rating` AS `avg_rating_vehicles.avg_rating` FROM `vehicle` AS `vehicle` LEFT OUTER JOIN `avg_rating_vehicles` AS `avg_rating_vehicles` ON `vehicle`.`vehicle_id` = `avg_rating_vehicles`.`vehicle_id` WHERE   `vehicle`.`status` = 'AVAILABLE' "
+     let query="SELECT `vehicle`.`vehicle_id`, `vehicle`.`user_id`, `vehicle`.`vehicle_type`, `vehicle`.`brand`, `vehicle`.`model`, `vehicle`.`fuel_type`, `vehicle`.`year`, `vehicle`.`registration_state`, `vehicle`.`km_driven`, `vehicle`.`number_plate`, `vehicle`.`price_per_day`, `vehicle`.`description`, `vehicle`.`image`, `vehicle`.`documents`, `vehicle`.`price`, `vehicle`.`status`, `vehicle`.`createdAt`, `vehicle`.`updatedAt`, `avg_rating_vehicles`.`vehicle_id` AS `avg_rating_vehicles.vehicle_id`, `avg_rating_vehicles`.`avg_rating` AS `avg_rating_vehicles.avg_rating` FROM `vehicle` AS `vehicle` LEFT OUTER JOIN `avg_rating_vehicles` AS `avg_rating_vehicles` ON `vehicle`.`vehicle_id` = `avg_rating_vehicles`.`vehicle_id` WHERE   `vehicle`.`status` = 'AVAILABLE' "
     sequelize.query(`${query} and vehicle.user_id!=${user_id} and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}`,{type:sequelize.QueryTypes.SELECT}).then((result)=>{
             console.log(result)
 
@@ -2999,7 +3022,11 @@ app.get('/helpful-accessory-count',(req,res)=>{
     },100)
 })
 
-
+app.post('/remove-profile-image',(req,res)=>{
+    user.update({image:null},{where:{user_id:req.body.user_id}}).then((result)=>{
+        res.send("Profile Image Removed");
+    }).catch(e=>res.send(e))
+})
 
 
 

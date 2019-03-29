@@ -11,7 +11,7 @@ const generate_email =async (email,subject,text)=>{
 
     // setup email data with unicode symbols
     let mailOptions = {
-        from: '"PocketWheelz" <pocketwheelz.com>', // sender address
+        from: '"Ride Wheelz" <ridewheelz.com>', // sender address
         to: `${email}`, // list of receivers
         subject: `${subject}`, // Subject line
         text: `${text}`, // plain text body

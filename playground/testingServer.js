@@ -20,7 +20,7 @@ const nodemailer = require("nodemailer");
 const url = require('url');
 const pdfkit = require('pdfkit')
 const fs = require('fs')
-
+const pdfInvoice = require('pdf-invoice')
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -56,12 +56,40 @@ app.post('/test-middleware',authenticate,(req,res)=>{
 })
 
 
+app.post('/pdf-invoice',(req,res)=>{
+    const document = pdfInvoice({
+        company: {
+            phone: '(99) 9 9999-9999',
+            email: 'company@evilcorp.com',
+            address: 'Av. Companhia, 182, Água Branca, Piauí',
+            name: 'Evil Corp.',
+        },
+        customer: {
+            name: 'Elliot Raque',
+            email: 'raque@gmail.com',
+        },
+        items: [
+            {amount: 50.0, name: 'XYZ', description: 'Lorem ipsum dollor sit amet', quantity: 12},
+            {amount: 12.0, name: 'ABC', description: 'Lorem ipsum dollor sit amet', quantity: 12},
+            {amount: 127.72, name: 'DFE', description: 'Lorem ipsum dollor sit amet', quantity: 12},
+        ],
+    })
+
+    document.generate() // triggers rendering
+    document.pdfkitDoc.pipe(fs.createWriteStream('uploads/file.pdf'))
+
+
+})
+
+
 
 app.post('/test-pdf',(req,res)=>{
     const doc= new pdfkit;
     doc.pipe(fs.createWriteStream('uploads/file.pdf'));
     // write to PDF
-    doc.text('Hello world!', 100, 100)
+    doc.text('Ride Wheelz')
+        doc.moveDown(2);
+    doc.text('YOOO')
     doc.pipe(res);                                       // HTTP response
     doc.end()
 })
