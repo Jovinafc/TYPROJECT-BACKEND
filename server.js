@@ -1237,18 +1237,18 @@ app.post('/delete-account',async (req,res)=>{
 
 
 //--------
-//------ Update User Profile
+//------ Update User Profileg
 app.post('/update-user-profile',async (req,res)=>{
 let users = req.body.users;
-const update2 = await user.findOne({where:{user_id:user_id}}).then((result1)=>{
+const update2 = await user.findOne({where:{user_id:users.user_id}}).then((result1)=>{
    if(result1.dataValues.documents!==null)
    {
-    clientURL =result1.dataValues.documents 
+    documentURL =result1.dataValues.documents 
    }
 })
 
 const update1 =await user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
-    state:users.state,city:users.city,pincode:users.pincode,documents:clientURL,bank_account_no:users.bank_account_no
+    state:users.state,city:users.city,pincode:users.pincode,documents:documentURL,bank_account_no:users.bank_account_no
 },{where:
         {user_id:users.user_id}}).then((result)=>{
             res.send('User profile Updated')
