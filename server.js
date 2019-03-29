@@ -975,12 +975,7 @@ app.post('/update-profile-image',async (req,res)=>{
 app.post('/update-profile-document',async (req,res)=>{
 
     const profileImage1= await user.update({documents:clientURL},{where:{user_id:req.body.user_id}}).then((result)=>{
-
-
-        const deleteImage=()=> {
-
-        }
-        deleteImage();
+        ;
         res.send('Document Image Updated')
     }).catch(e=>res.send(e))
 
@@ -2383,7 +2378,7 @@ app.get('/filter1',(req,res)=>{
             price1="user_id!='null'"
         }
 
-     let query="SELECT `vehicle`.`vehicle_id`, `vehicle`.`user_id`, `vehicle`.`vehicle_type`, `vehicle`.`brand`, `vehicle`.`model`, `vehicle`.`fuel_type`, `vehicle`.`year`, `vehicle`.`registration_state`, `vehicle`.`km_driven`, `vehicle`.`number_plate`, `vehicle`.`price_per_day`, `vehicle`.`description`, `vehicle`.`image`, `vehicle`.`documents`, `vehicle`.`price`, `vehicle`.`status`, `vehicle`.`createdAt`, `vehicle`.`updatedAt`, `avg_rating_vehicles`.`vehicle_id` AS `vehicle_id`, `avg_rating_vehicles`.`avg_rating` AS `avg_rating` FROM `vehicle` AS `vehicle` LEFT OUTER JOIN `avg_rating_vehicles` AS `avg_rating_vehicles` ON `vehicle`.`vehicle_id` = `avg_rating_vehicles`.`vehicle_id` WHERE   `vehicle`.`status` = 'AVAILABLE' "
+     let query="SELECT `vehicle`.`vehicle_id`, `vehicle`.`user_id`, `vehicle`.`vehicle_type`, `vehicle`.`brand`, `vehicle`.`model`, `vehicle`.`fuel_type`, `vehicle`.`year`, `vehicle`.`registration_state`, `vehicle`.`km_driven`, `vehicle`.`number_plate`, `vehicle`.`price_per_day`, `vehicle`.`description`, `vehicle`.`image`, `vehicle`.`documents`, `vehicle`.`price`, `vehicle`.`status`, `vehicle`.`createdAt`, `vehicle`.`updatedAt`, `avg_rating_vehicles`.`avg_rating` AS `avg_rating` FROM `vehicle` AS `vehicle` LEFT OUTER JOIN `avg_rating_vehicles` AS `avg_rating_vehicles` ON `vehicle`.`vehicle_id` = `avg_rating_vehicles`.`vehicle_id` WHERE   `vehicle`.`status` = 'AVAILABLE' "
     sequelize.query(`${query} and vehicle.user_id!=${user_id} and ${typeOfService1} and ${vehicle_type1} and ${fuel_type4} and ${select_state1} and ${price1}`,{type:sequelize.QueryTypes.SELECT}).then((result)=>{
             console.log(result)
 
