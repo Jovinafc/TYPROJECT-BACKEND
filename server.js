@@ -974,7 +974,7 @@ app.post('/update-profile-image',async (req,res)=>{
 //update user document
 app.post('/update-profile-document',async (req,res)=>{
 
-    const profileImage1= await user.update({documents:documentURL},{where:{user_id:req.body.user_id}}).then((result)=>{
+    const profileImage1= await user.update({documents:clientURL},{where:{user_id:req.body.user_id}}).then((result)=>{
 
 
         const deleteImage=()=> {

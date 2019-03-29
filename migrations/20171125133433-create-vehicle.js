@@ -43,7 +43,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       documents: {
-        type: Sequelize.BLOB
+        type: Sequelize.STRING
       },
       price: {
         type: Sequelize.BIGINT

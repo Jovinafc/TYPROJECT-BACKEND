@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       price_per_day: DataTypes.BIGINT,
       description:DataTypes.STRING,
       image: DataTypes.STRING,
-      documents: DataTypes.BLOB,
+      documents: DataTypes.STRING,
       price: DataTypes.BIGINT,
       status:DataTypes.STRING
   },{freezeTableName:true});
