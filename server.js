@@ -43,6 +43,8 @@ const {authenticate} = require('./middleware/authenticate');
 const {create_transaction} = require('./methods/transaction-creation')
 const {create_accessory}= require('./methods/accessory_create')
 const {generate_email} = require('./methods/generate-email');
+const {generate_email_attachment}= require('./methods/generate-email-attachments')
+const {generatePdf,fileName}= require('./methods/generate-pdf')
 
 //------ For parsing json data and allowing cross-communication between react and node
 app.use(bodyParser.urlencoded({

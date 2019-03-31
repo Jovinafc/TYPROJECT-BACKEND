@@ -1,6 +1,6 @@
-const nodemailer = require('node-mailer')
+const nodemailer = require('nodemailer')
 
-const generate_email_attachment =async (email,subject,text,filename)=>{
+const generate_email_attachment =async (email,subject,text,filename,data)=>{
 
     async function main() {
 
@@ -21,9 +21,8 @@ const generate_email_attachment =async (email,subject,text,filename)=>{
             subject: `${subject}`, // Subject line
             text: `${text}`, // plain text body
             attachments: [{
-                filename: 'Invoice.pdf',
-                path: `uploads/${filename}`,
-                contentType: 'application/pdf'
+                filename: `Invoice.pdf`,
+                content:Buffer.from(data,'base64')
             }]
 
         };

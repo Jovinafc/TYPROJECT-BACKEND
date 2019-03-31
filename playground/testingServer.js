@@ -39,7 +39,7 @@ const rent = require('./../models').rent
 const owner = require('./../models').owner
 const client = require('./../models').client
 const {generatePdf,fileName} = require('./../methods/generate-pdf')
-//const {generate_email_attachment}= require('./../methods/generate-email-attachments')
+const {generate_email_attachment}= require('./../methods/generate-email-attachments')
 const {create_transaction} = require('./../methods/transaction-creation')
 const {generate_email}= require('./../methods/generate-email')
 
@@ -50,54 +50,48 @@ cloudinary.config({
     api_secret: '0UQHQHXe4QU_aqg6gtbOxuPUO0g'
 });
 
-app.post('/pdf-done',(req,res)=>{
+app.post('/pdf-done',async (req,res)=>{
 ItemName=["shampoo"]
 ItemQty=[1]
 ItemPrice=[100]
 GrandTotal=100
-    generatePdf("Test",ItemName,ItemQty,ItemPrice,GrandTotal)
-
-        const generate_email_attachment =async (email,subject,text,filename)=>{
-
-            async function main() {
-
-                let transporter = nodemailer.createTransport({
-                    service: "gmail",
-                    secure: false,
-                    tls: {rejectUnauthorized: false},
-                    auth: {
-                        user: "hpro401@gmail.com", // generated ethereal user
-                        pass: "Zenfone5" // generated ethereal password
-                    }
-                });
-
-                // setup email data with unicode symbols
-                let mailOptions = {
-                    from: '"Ride Wheelz" <ridewheelz.com>', // sender address
-                    to: `${email}`, // list of receivers
-                    subject: `${subject}`, // Subject line
-                    text: `${text}`, // plain text body
-                    attachments: [{
-                        filename: 'Invoice.pdf',
-                        filePath: `uploads/${filename} `,
-                        contentType: 'application/pdf'
-                    }]
-
-                };
-
-                // send mail with defined transport object
-                let info = await transporter.sendMail(mailOptions)
-            }
-            main().catch(console.error)
-        }
+    const pdf=await generatePdf("Test",ItemName,ItemQty,ItemPrice,GrandTotal)
 
 
     setTimeout(function () {
-        generate_email_attachment("lioneldsouza51@gmail.com","test","test",fileName)
+        var file = `uploads/${fileName}.pdf`
+        data1 = fs.readFileSync(file);
+        data= data1.toString('base64')
+        generate_email_attachment("lioneldsouza51@gmail.com","test","test",fileName,data)
+        res.send("Email Sent")
+        fs.exists(`uploads/${fileName}.pdf`, function (exists) {
+            if (exists) {
+
+                console.log('File exists. Deleting now ...');
+                fs.unlink(`uploads/${fileName}.pdf`);
+            } else {
+
+                console.log('File not found, so not deleting.');
+            }
+        });
+
+
     },5000)
 
 })
 
+app.get('/test123',(req,res)=> {
+    var file = "uploads/file-1554029972996.pdf"
+    data = fs.readFileSync(file);
+    console.log(data.toString('base64'))
+
+})
+
+
+app.post("/send-email-test",(req,res)=>{
+    generate_email("beast0013@mailinator.com","test","test")
+    res.send("Email Sent")
+})
 // middleware logic
 app.post('/test-middleware',authenticate,(req,res)=>{
     console.log('Worked')
