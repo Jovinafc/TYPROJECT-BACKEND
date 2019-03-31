@@ -807,7 +807,7 @@ app.post('/rent-now',async (req,res)=>{
                         let day = date.getDate();
                         let hours = date.getHours();
                         let minutes = date.getMinutes();
-                        let jobName = owner_details[0].name+" "+vehicle_id;
+                        let jobName = owner_details[0].name+" "+vehicle_id+" "+result4.client_id;
                         var date1 = new Date(year, month, day, hours, minutes, 0);
                         console.log('Ending Date' +date1+date)
 
@@ -1404,6 +1404,7 @@ app.post('/request-otp',(req,res)=>{
         let info = await transporter.sendMail(mailOptions)
         
     }
+
     res.send("worked")
     main().catch(console.error);
     console.log('Otp sent')
@@ -1838,6 +1839,7 @@ app.post('/checkout',async (req,res)=>{
     let quantity=[]
     let price =[]
     let totalPrice=[];
+    let pdfItemNames =[];
     const test =await cart_storage.findAll({where:{user_id:req.body.user_id}}).then((result)=>{
         user.findOne({where:{user_id:req.body.user_id}}).then((user_details1)=>{
             user_details.push(user_details1.dataValues)
@@ -1853,6 +1855,7 @@ app.post('/checkout',async (req,res)=>{
 
           accessory.findOne({where:{accessory_id:result[i].dataValues.accessory_id}}).then((data)=>{
                 price.push(data.dataValues.accessory_price)
+                pdfItemNames.push(data.dataValues.accessory_name)
              let total_price=(result[i].dataValues.quantity *  data.dataValues.accessory_price  )
             totalPrice.push(total_price)
               let name = user_details[0].first_name+" "+user_details[0].last_name
@@ -1900,7 +1903,16 @@ app.post('/checkout',async (req,res)=>{
 //-----Cancel a Booking ---
 app.post('/cancel-booking',(req,res)=>{
     const Op = Sequelize.Op;
-    let jobName = req.body.owner_name+" "+req.body.vehicle_id
+    let client_id=null;
+    rent.findOne({where:{[Op.and]:[{owner_id:req.body.owner_id},{vehicle_id:req.body.vehicle_id}]}}).then((details)=>{
+        client_id = details.client_id;
+    })
+
+
+    let jobName = req.body.owner_name+" "+req.body.vehicle_id+" "+client_id;
+
+
+
     let my_job = schedule.scheduledJobs[jobName]
     my_job.cancel();
     vehicle.update({status:"AVAILABLE"},{where:{vehicle_id:req.body.vehicle_id}}).then(()=>{

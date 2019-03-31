@@ -18,9 +18,11 @@ const messagebird = require('messagebird')('qI8MEqDZ9CXHedPy870iEVIcx');
 const otplib = require('otplib');
 const nodemailer = require("nodemailer");
 const url = require('url');
-const pdfkit = require('pdfkit')
+const PDFDocument = require('pdfkit')
 const fs = require('fs')
 const pdfInvoice = require('pdf-invoice')
+const blobStream  = require('blob-stream');
+const browserify = require('browserify')
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -36,10 +38,10 @@ const user = require('./../models').user;
 const rent = require('./../models').rent
 const owner = require('./../models').owner
 const client = require('./../models').client
-
-
+const {generatePdf,fileName} = require('./../methods/generate-pdf')
+//const {generate_email_attachment}= require('./../methods/generate-email-attachments')
 const {create_transaction} = require('./../methods/transaction-creation')
-
+const {generate_email}= require('./../methods/generate-email')
 
 //-----------Cloudinary
 cloudinary.config({
@@ -47,6 +49,54 @@ cloudinary.config({
     api_key: '317643389281754',
     api_secret: '0UQHQHXe4QU_aqg6gtbOxuPUO0g'
 });
+
+app.post('/pdf-done',(req,res)=>{
+ItemName=["shampoo"]
+ItemQty=[1]
+ItemPrice=[100]
+GrandTotal=100
+    generatePdf("Test",ItemName,ItemQty,ItemPrice,GrandTotal)
+
+        const generate_email_attachment =async (email,subject,text,filename)=>{
+
+            async function main() {
+
+                let transporter = nodemailer.createTransport({
+                    service: "gmail",
+                    secure: false,
+                    tls: {rejectUnauthorized: false},
+                    auth: {
+                        user: "hpro401@gmail.com", // generated ethereal user
+                        pass: "Zenfone5" // generated ethereal password
+                    }
+                });
+
+                // setup email data with unicode symbols
+                let mailOptions = {
+                    from: '"Ride Wheelz" <ridewheelz.com>', // sender address
+                    to: `${email}`, // list of receivers
+                    subject: `${subject}`, // Subject line
+                    text: `${text}`, // plain text body
+                    attachments: [{
+                        filename: 'Invoice.pdf',
+                        filePath: `uploads/${filename} `,
+                        contentType: 'application/pdf'
+                    }]
+
+                };
+
+                // send mail with defined transport object
+                let info = await transporter.sendMail(mailOptions)
+            }
+            main().catch(console.error)
+        }
+
+
+    setTimeout(function () {
+        generate_email_attachment("lioneldsouza51@gmail.com","test","test",fileName)
+    },5000)
+
+})
 
 // middleware logic
 app.post('/test-middleware',authenticate,(req,res)=>{
@@ -81,17 +131,96 @@ app.post('/pdf-invoice',(req,res)=>{
 
 })
 
+app.get('/test-pdf-2',(req,res)=>{
+    // create a document and pipe to a blob
+    var doc = new PDFDocument();
+    var stream = doc.pipe(blobStream());
 
+// draw some text
+    doc.fontSize(25).text('Here is some vector graphics...', 100, 80);
 
-app.post('/test-pdf',(req,res)=>{
-    const doc= new pdfkit;
-    doc.pipe(fs.createWriteStream('uploads/file.pdf'));
+// some vector graphics
+    doc
+        .save()
+        .moveTo(100, 150)
+        .lineTo(100, 250)
+        .lineTo(200, 250)
+        .fill('#FF3300');
+
+    doc.circle(280, 200, 50).fill('#6600FF');
+
+// an SVG path
+    doc
+        .scale(0.6)
+        .translate(470, 130)
+        .path('M 250,75 L 323,301 131,161 369,161 177,301 z')
+        .fill('red', 'even-odd')
+        .restore();
+let lorem= "Hello World Sup"
+// and some justified text wrapped into columns
+    doc
+        .text('And here is some wrapped text...', 100, 300)
+        .font('Times-Roman', 13)
+        .moveDown()
+        .text(lorem, {
+            width: 412,
+            align: 'justify',
+            indent: 30,
+            columns: 2,
+            height: 300,
+            ellipsis: true
+        });
+
+// end and display the document in the iframe to the right
+    doc.end();
+    stream.on('finish', function() {
+        stream.toBlobURL('application/pdf');
+    });
+})
+
+app.get('/test-pdf',(req,res)=>{
+    pdfItemNames =["Bike shampoo","Car shampoo"]
+    pdfItemQuantity=[1,2]
+    pdfPrice =[100,200]
+    const doc= new PDFDocument;
+    doc.pipe(fs.createWriteStream(`uploads/file-${Date.now()}.pdf`));
+    //const stream = doc.pipe(blobStream());
+
     // write to PDF
-    doc.text('Ride Wheelz')
-        doc.moveDown(2);
-    doc.text('YOOO')
+    doc.text('Invoice from Ride Wheelz',200,10)
+        doc.moveDown(1);
+    doc.text("Customer Name:- Test",10,40)
+    doc.text(`Invoice no:-${Math.floor(Math.random() * 1000) + 1 }`,450,10)
+    doc.text('Sr no',100,60)
+    for(let i=1;i<=pdfItemNames.length;i++)
+    {
+        doc.text(i,100,60+(i*15));
+    }
+    doc.text("Item Name",150,60)
+    for(let i=0,j=1;i<pdfItemNames.length;i++,j++)
+    {
+        doc.text(pdfItemNames[i],150,60+(j*15));
+    }
+    doc.text("Quantity",450,60)
+    for(let i=0,j=1;i<pdfItemQuantity.length;i++,j++)
+    {
+        doc.text(pdfItemQuantity[i],450,60+(j*15));
+    }
+    doc.text("Price",500,60)
+
+    let y=null;
+    for(let i=0,j=1;i<pdfPrice.length;i++,j++)
+    {
+        doc.text(pdfPrice[i],500,60+(j*15));
+        y=60+(j*30)
+    }
+    doc.text("Grand Total 10000",400,y)
+
+
     doc.pipe(res);                                       // HTTP response
     doc.end()
+
+
 })
 
 app.post('/test-email',(req,res)=>{
@@ -329,21 +458,26 @@ app.post('/schedule-testing',(req,res)=>{
 
         var date1 = new Date(year, month, day, hours, minutes, 0);
         console.log(date)
-    res.send('Task Initiated ' + date1)
-    var j =
-        schedule.scheduleJob(playstuff, date1, function () {
-            console.log(playstuff)
-            console.log('change made')
-            vehicle.update({status: "RENTED"}, {where: {vehicle_id: req.body.vehicle_id}}).then(() => {
+
+
+    if(req.body.type === "Test") {
+        res.send('Task Initiated ' + date1)
+        var j =
+            schedule.scheduleJob(playstuff, date1, function () {
+                console.log(playstuff)
+                console.log('change made')
+                // vehicle.update({status: "RENTED"}, {where: {vehicle_id: req.body.vehicle_id}}).then(() => {
+                //
+                // })
+
 
             })
-
-        })
-
+    }
 
          if(req.body.type==="Cancel")
           {
               let my_job = schedule.scheduledJobs[playstuff]
+              console.log(my_job)
               my_job.cancel();
               res.send('Task Cancelled'+date1);
           }
