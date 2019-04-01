@@ -448,7 +448,7 @@ app.post('/schedule-testing',(req,res)=>{
     let minutes = date.getMinutes();
 
 
-    let playstuff = req.body.name;
+    let playstuff = req.body.name+" "+1+" "+1;
 
         var date1 = new Date(year, month, day, hours, minutes, 0);
         console.log(date)
