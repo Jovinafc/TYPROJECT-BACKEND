@@ -62,7 +62,7 @@ GrandTotal=100
         var file = `uploads/${fileName}.pdf`
         data1 = fs.readFileSync(file);
         data= data1.toString('base64')
-        generate_email_attachment("dsouza.jovin65@gmail.com","test","test",fileName,data)
+        generate_email_attachment("lioneldsouza51@gmail.com","test","test",fileName,data)
         res.send("Email Sent")
         fs.exists(`uploads/${fileName}.pdf`, function (exists) {
             if (exists) {

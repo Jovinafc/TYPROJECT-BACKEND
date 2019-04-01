@@ -681,11 +681,11 @@ app.post('/buy-now',(req,res)=> {
     let owner_account_no = vehicles.owner_bank_account;
     user.findOne({where:{user_id:vehicles.client_id}}).then((result)=>{
        vehicle.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details1)=>{
-           owner.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details)=>{
+           owner.findOne({where:{vehicle_id:vehicles.vehicle_id}}).then((owner_details2)=>{
 
            
-           owner_id= owner_details.dataValues.owner_id
-           owner_user_id = owner_details.dataValues.user_id
+           owner_id= owner_details2.dataValues.owner_id
+           owner_user_id = owner_details2.dataValues.user_id
            console.log(owner_id);
         user.findOne({where:{user_id:owner_user_id}}).then((owners1)=>{
 
@@ -733,8 +733,11 @@ app.post('/buy-now',(req,res)=> {
 
                            console.log(owner_name)
                         create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,user_id,vehicle_type,"Bank",owner_name,amount,"SOLD")
+                                let d = new Date();
+                        generate_email(result.dataValues.email,"Buying Confirmation",`Thank you for buying a vehicle from Ride Wheelz on ${d}`)
+                                 generate_email(owner_details2.dataValues.email,"Buying Conformation","Thank you for using Ride Wheelz, your payment has been settled")
 
-                        res.send('Vehicle Sold')
+                                 res.send('Vehicle Sold')
                     })
                 })
                     })
@@ -816,7 +819,9 @@ app.post('/rent-now',async (req,res)=>{
                        // let jobName = "Test"
                         var date1 = new Date(year, month, day, hours, minutes, 0);
                         console.log('Ending Date' +date1+date)
-                         console.log("Job name"+jobName)       
+                         console.log("Job name"+jobName)
+                        let d = new Date();
+                          generate_email(user_details[0].email,"Rent Confirmation",`Thank you for renting a vehicle from Ride Wheelz on ${d}`)
                         res.send('Vehicle Rented');
                         //from client to bank
                         create_transaction(client_details[0].client_id, owner_details[0].owner_id,vehicle_id,user_client_id, transaction_type, client_details[0].name, "Bank", totalAmount, "Rent Initiated");
@@ -879,7 +884,8 @@ app.post('/rent-now',async (req,res)=>{
 
                                                                                 vehicle_transaction.update({status:"Rent In Process"},{where:{[Op.and]:[{status:"Rent Initiated"},{user_id:user_client_id},{vehicle_id:vehicle_id}]}}).then(()=>{
 
-
+                                                                                generate_email(user_details[0].email,"Rent Payment Settled","Thank you for renting a vehicle from Ride Wheelz. Your deposit has been returned")
+                                                                               generate_email(owner_details[0],"Rent Payment Settled","Thank you for using Ride Wheelz, your payment has been settled")
                                                                                 console.log("Payment Settled");
                                                                                 })
                                                                             })
@@ -1407,7 +1413,7 @@ app.post('/request-otp',(req,res)=>{
 
         // setup email data with unicode symbols
         let mailOptions = {
-            from: '"PocketWheelz" <pocketwheelz.com>', // sender address
+            from: '"Ride Wheelz" <ridewheelz.com>', // sender address
             to: `${email}`, // list of receivers
             subject: "OTP CONFIRMATION", // Subject line
             text: `Your OTP is : ${token}`, // plain text body
@@ -1669,6 +1675,10 @@ app.post('/removeCart',(req,res)=>{
 app.post('/buy-accessories',(req,res)=>{
     const Op = Sequelize.Op;
     let qty=null;
+    let pdfItemName =[];
+    let pdfItemQuantity =[];
+    let pdfItemPrice =[];
+    let GrandTotal=null;
     cart_storage.findOne({where:{[Op.and]:{user_id:req.body.user_id,accessory_id:req.body.accessory_id}}}).then((acc)=>{
         if(acc===null)
         {
@@ -1684,7 +1694,10 @@ app.post('/buy-accessories',(req,res)=>{
                         res.send('Item out of stock')
                         return false;
                     }
-
+                pdfItemName.push(result1.dataValues.accessory_name)
+                pdfItemQuantity.push(qty);
+                    pdfItemPrice.push(req.body.amount)
+                    GrandTotal=req.body.amount
             cart_storage.destroy({where:{[Op.and]:{user_id:req.body.user_id,accessory_id:req.body.accessory_id}}}).then((result)=>{
 
                     accessory.update({accessory_qty:result1.dataValues.accessory_qty - qty}, {where: {accessory_id: req.body.accessory_id}}).then((done) => {
@@ -1699,6 +1712,25 @@ app.post('/buy-accessories',(req,res)=>{
 
                                     let name= user_details.dataValues.first_name+" "+user_details.dataValues.last_name
                                     create_accessory(req.body.user_id,req.body.accessory_id,req.body.quantity,name,"Developer",req.body.amount,"SOLD")
+
+                          generatePdf(name,pdfItemName,pdfItemQuantity,pdfItemPrice,GrandTotal)
+                          setTimeout(function () {
+                              var file = `uploads/${fileName}.pdf`
+                              data1 = fs.readFileSync(file);
+                              data= data1.toString('base64')
+                              generate_email_attachment(user_details.dataValues.email,"Accessory Purchase","Thank you for Purchasing from Ride Wheelz",fileName,data)
+                              fs.exists(`uploads/${fileName}.pdf`, function (exists) {
+                                  if (exists) {
+
+                                      console.log('File exists. Deleting now ...');
+                                      fs.unlink(`uploads/${fileName}.pdf`);
+                                  } else {
+
+                                      console.log('File not found, so not deleting.');
+                                  }
+                              });
+
+                          },2000)
                                 res.send("Item removed From Cart");
                             })
 
@@ -1740,10 +1772,18 @@ app.post('/direct-buy-check',(req,res)=>{
 
 app.post('/direct-buy',(req,res)=>{
    try{
+       let pdfItemName =[];
+       let pdfItemQuantity =[];
+       let pdfItemPrice =[];
+       let GrandTotal=null;
        user.findOne({where:{user_id:req.body.user_id}}).then((user_details)=>{
 
 
         accessory.findOne({where: {accessory_id: req.body.accessory_id}}).then((result) => {
+            pdfItemName.push(result.dataValues.accessory_name)
+            pdfItemQuantity.push(req.body.quantity)
+            pdfItemPrice.push(req.body.amount)
+            GrandTotal= req.body.amount
                 accessory.update({accessory_qty: result.dataValues.accessory_qty - req.body.quantity},{where:{accessory_id: req.body.accessory_id}}).then(() => {
                 console.log(result.dataValues.accessory_qty)
                     card_details.findOne({where: {bank_account_no: req.body.bank_account_no}}).then((bank_details) => {
@@ -1753,8 +1793,6 @@ app.post('/direct-buy',(req,res)=>{
                         }
                         card_details.update({funds: bank_details.dataValues.funds - req.body.amount}, {where: {bank_account_no: req.body.bank_account_no}}).then(() => {
                             card_details.findOne({where: {name: "Bank"}}).then((details) => {
-
-
 
 
                                         card_details.findOne({where:{name:"Developer"}}).then((developer_details)=>{
@@ -1769,7 +1807,25 @@ app.post('/direct-buy',(req,res)=>{
                                                         let name= user_details.dataValues.first_name+" "+user_details.dataValues.last_name
                                                         create_accessory(req.body.user_id,req.body.accessory_id,req.body.quantity,name,"Developer",req.body.amount,"SOLD")
 
+                                                generatePdf(name,pdfItemName,pdfItemQuantity,pdfItemPrice,GrandTotal)
 
+                                                        setTimeout(function () {
+                                                            var file = `uploads/${fileName}.pdf`
+                                                            data1 = fs.readFileSync(file);
+                                                            data= data1.toString('base64')
+                                                            generate_email_attachment(user_details.dataValues.email,"Accessory Purchase","Thank you for Purchasing from Ride Wheelz",fileName,data)
+                                                            fs.exists(`uploads/${fileName}.pdf`, function (exists) {
+                                                                if (exists) {
+
+                                                                    console.log('File exists. Deleting now ...');
+                                                                    fs.unlink(`uploads/${fileName}.pdf`);
+                                                                } else {
+
+                                                                    console.log('File not found, so not deleting.');
+                                                                }
+                                                            });
+
+                                                        },2000)
                                                         res.send("Accessory Purchased")
                                                         console.log('')
                                                     })
@@ -1853,6 +1909,8 @@ app.post('/checkout',async (req,res)=>{
     let quantity=[]
     let price =[]
     let totalPrice=[];
+    let name="";
+    let total_price = null;
     let pdfItemNames =[];
     const test =await cart_storage.findAll({where:{user_id:req.body.user_id}}).then((result)=>{
         user.findOne({where:{user_id:req.body.user_id}}).then((user_details1)=>{
@@ -1870,9 +1928,9 @@ app.post('/checkout',async (req,res)=>{
           accessory.findOne({where:{accessory_id:result[i].dataValues.accessory_id}}).then((data)=>{
                 price.push(data.dataValues.accessory_price)
                 pdfItemNames.push(data.dataValues.accessory_name)
-             let total_price=(result[i].dataValues.quantity *  data.dataValues.accessory_price  )
+              total_price=(result[i].dataValues.quantity *  data.dataValues.accessory_price  )
             totalPrice.push(total_price)
-              let name = user_details[0].first_name+" "+user_details[0].last_name
+               name = user_details[0].first_name+" "+user_details[0].last_name
             create_accessory(req.body.user_id,data.dataValues.accessory_id,result[i].dataValues.quantity,name,"Developer",total_price,"SOLD")
 
               accessory.update({accessory_qty:data.dataValues.accessory_qty - result[i].dataValues.quantity},{where:{accessory_id:data.dataValues.accessory_id}})
@@ -1896,7 +1954,24 @@ app.post('/checkout',async (req,res)=>{
                     })
                 })  
 
+                generatePdf(name,pdfItemNames,quantity,price,total_sum)
+                setTimeout(function () {
+                    var file = `uploads/${fileName}.pdf`
+                    data1 = fs.readFileSync(file);
+                    data= data1.toString('base64')
+                    generate_email_attachment(user_details.dataValues.email,"Accessory Purchase","Thank you for Purchasing from Ride Wheelz",fileName,data)
+                    fs.exists(`uploads/${fileName}.pdf`, function (exists) {
+                        if (exists) {
 
+                            console.log('File exists. Deleting now ...');
+                            fs.unlink(`uploads/${fileName}.pdf`);
+                        } else {
+
+                            console.log('File not found, so not deleting.');
+                        }
+                    });
+
+                },2000)
                 console.log(total_sum)
                 res.send("Total Amount: "+total_sum)
             },2000)
