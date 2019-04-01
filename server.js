@@ -2111,7 +2111,7 @@ app.post('/remove-vehicle',(req,res)=>{
 app.post('/vehicle-history',async (req,res)=>{
     const Op = Sequelize.Op;
     let details=[];
-    let owner_id=[];
+    let client_id=[];
     let vehicle_id=[];
     let ratingDetails=[];
     let commentDetails=[];
@@ -2119,7 +2119,7 @@ app.post('/vehicle-history',async (req,res)=>{
  let test=await   vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction","Rent in Process"]}}]}}).then((result1)=>{
        for(let i in result1)
        {
-           owner_id.push(result1[i].dataValues.owner_id)
+           client_id.push(result1[i].dataValues.client_id)
            vehicle_id.push(result1[i].dataValues.vehicle_id)
           // user_id.push(result1[i].dataValues.user_id)
           // details.push(result1[i].dataValues)

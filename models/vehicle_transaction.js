@@ -4,10 +4,13 @@ module.exports = (sequelize, DataTypes) => {
       id: {
           allowNull: false,
           autoIncrement: true,
-          primaryKey: true,
+          primaryKey: false,
           type: DataTypes.INTEGER
       },
-    client_id: DataTypes.BIGINT,
+    client_id: {
+          type:DataTypes.BIGINT,
+        primaryKey: true,
+    },
     owner_id: {
          type: DataTypes.BIGINT,
         references:{
@@ -36,7 +39,7 @@ module.exports = (sequelize, DataTypes) => {
       vehicle_transaction.belongsTo(models.vehicle,{foreignKey: "vehicle_id"})
        vehicle_transaction.hasOne(models.rating,{foreignKey:"vehicle_id"})
       vehicle_transaction.hasOne(models.feedback,{foreignKey:"vehicle_id"})
-      vehicle_transaction.hasMany(models.rent,{foreignKey:"vehicle_id"})
+      vehicle_transaction.hasMany(models.rent,{foreignKey:"client_id",targetKey:"client_id"})
   };
   return vehicle_transaction;
 };

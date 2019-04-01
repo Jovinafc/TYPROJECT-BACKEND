@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     end_date: DataTypes.DATE
   }, {});
   rent.associate = function(models) {
-    rent.belongsTo(models.vehicle_transaction,{foreignKey:"vehicle_id"})
+    rent.belongsTo(models.vehicle_transaction,{foreignKey:"client_id",sourceKey:"client_id"})
   };
   return rent;
 };
