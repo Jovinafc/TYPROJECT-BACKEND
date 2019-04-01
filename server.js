@@ -642,11 +642,13 @@ try {
                     user_id: vehicles.user_id,
                     name: result1.dataValues.first_name + ' ' + result1.dataValues.last_name,
                     address: result1.dataValues.address,
-                    pincode: vehicles.pincode,
+                    pincode: result1.dataValues.pincode,
                     mobile_no: result1.dataValues.phone_number,
                     email: result1.dataValues.email,
+                    state:result1.dataValues.state,
+                    city:result1.dataValues.city,
                     DOB: result1.dataValues.DOB,
-                    documents: ownerURL
+                    documents: documentURL
 
                 })
             })
@@ -697,12 +699,13 @@ app.post('/buy-now',(req,res)=> {
             user_id:vehicles.client_id,
             name: result.dataValues.first_name+' '+result.dataValues.last_name,
             address:result.dataValues.address,
-           city:vehicles.city,
-            pincode:vehicles.pincode,
+           city:result.dataValues.city,
+           state:result.dataValues.state,
+            pincode:result.dataValues.pincode,
             mobile_no: result.dataValues.phone_number,
             email:result.dataValues.email,
             DOB:result.dataValues.DOB,
-            documents:clientURL
+            documents:result.dataValues.documents
         }).then((clientResult)=>{
                 create_transaction(clientResult.dataValues.user_id,owner_id,vehicles.vehicle_id,user_id,vehicle_type,clientResult.dataValues.name,"Bank",amount,"In Transaction")
                 vehicle.update({status:'SOLD'},{where:{vehicle_id:vehicles.vehicle_id}}).then(()=>{
@@ -1243,19 +1246,27 @@ app.post('/delete-account',async (req,res)=>{
 //------ Update User Profileg
 app.post('/update-user-profile',async (req,res)=>{
 let users = req.body.users;
-const update2 = await user.findOne({where:{user_id:users.user_id}}).then((result1)=>{
+const update1 = await user.findOne({where:{user_id:users.user_id}}).then((result1)=>{
    if(result1.dataValues.documents!==null)
    {
     documentURL =result1.dataValues.documents 
    }
 })
 
-const update1 =await user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
+const update2 =await user.update({first_name:users.first_name,last_name:users.last_name,phone_number:users.phone_number,DOB:users.DOB,address:users.address,
     state:users.state,city:users.city,pincode:users.pincode,documents:documentURL,bank_account_no:users.bank_account_no
 },{where:
         {user_id:users.user_id}}).then((result)=>{
+            
+           
             res.send('User profile Updated')
 }).catch(e=>res.send(e))
+
+const update3 = await  owner.update({name:users.first_name+" "+users.last_name,address:users.address,mobile_no:users.phone_number,DOB:users.DOB,documents:documentURL,pincode:users.pincode,city:users.city,state:users.state},{where:{user_id:users.user_id}}).then(()=>{
+    console.log("Owner profile updated")
+   
+})  
+
 
 // if(users.bank_account_no!==undefined) {
 //     const update2 = await card_details.create({
@@ -2111,7 +2122,7 @@ app.post('/remove-vehicle',(req,res)=>{
 app.post('/vehicle-history',async (req,res)=>{
     const Op = Sequelize.Op;
     let details=[];
-    let client_id=[];
+    let owner_id=[];
     let vehicle_id=[];
     let ratingDetails=[];
     let commentDetails=[];
@@ -2119,7 +2130,7 @@ app.post('/vehicle-history',async (req,res)=>{
  let test=await   vehicle_transaction.findAll({where:{[Op.and]:[{user_id:req.body.user_id},{status:{[Op.not]:["In Transaction","Rent in Process"]}}]}}).then((result1)=>{
        for(let i in result1)
        {
-           client_id.push(result1[i].dataValues.client_id)
+           owner_id.push(result1[i].dataValues.owner_id)
            vehicle_id.push(result1[i].dataValues.vehicle_id)
           // user_id.push(result1[i].dataValues.user_id)
           // details.push(result1[i].dataValues)
